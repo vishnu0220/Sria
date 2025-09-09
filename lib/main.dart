@@ -17,15 +17,6 @@ class MyApp extends StatelessWidget {
   // Root of the application
   @override
   Widget build(BuildContext context) {
-    // return MaterialApp(
-    //   debugShowCheckedModeBanner: false,
-    //   title: 'FlowSphere',
-    //   theme: ThemeData(
-    //     colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
-    //   ),
-    //   home: const LoginScreen(),
-    // );
-
     return MaterialApp(
       title: 'FlowSphere',
       initialRoute: '/dashboard',
