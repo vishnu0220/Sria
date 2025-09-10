@@ -1,3 +1,5 @@
+import 'package:flow_sphere/screens/adminScreens/admin_dashboard.dart';
+import 'package:flow_sphere/screens/adminScreens/employees_screen.dart';
 import 'package:flow_sphere/screens/authScreens/login_screen.dart';
 import 'package:flow_sphere/screens/authScreens/password_reset_page.dart';
 import 'package:flow_sphere/screens/userScreens/calender_screen.dart';
@@ -19,16 +21,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FlowSphere',
-      initialRoute: '/dashboard',
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/progress': (context) => const ProgressScreen(),
-        '/requests': (context) => const RequestsScreen(),
-        '/calendar': (context) => const CalendarScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/resetPassword': (context) => const PasswordResetPage(),
-      },
+      // initialRoute: '/dashboard',
+      // routes: {
+      //   '/login': (context) => const LoginScreen(),
+      //   '/dashboard': (context) => const DashboardScreen(),
+      //   '/progress': (context) => const ProgressScreen(),
+      //   '/requests': (context) => const RequestsScreen(),
+      //   '/calendar': (context) => const CalendarScreen(),
+      //   '/profile': (context) => const ProfileScreen(),
+      //   '/resetPassword': (context) => const PasswordResetPage(),
+      // },
+      // home: AdminDashboardScreen(),
+      home: EmployeesScreen(),
     );
   }
 }
