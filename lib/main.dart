@@ -1,4 +1,7 @@
 import 'package:flow_sphere/screens/adminScreens/admin_dashboard.dart';
+import 'package:flow_sphere/screens/adminScreens/admin_progress_screen.dart';
+import 'package:flow_sphere/screens/adminScreens/approval_screen.dart';
+import 'package:flow_sphere/screens/adminScreens/employees_screen.dart';
 import 'package:flow_sphere/screens/authScreens/login_screen.dart';
 import 'package:flow_sphere/screens/authScreens/password_reset_page.dart';
 import 'package:flow_sphere/screens/userScreens/calender_screen.dart';
@@ -30,7 +33,9 @@ class MyApp extends StatelessWidget {
       //   '/profile': (context) => const ProfileScreen(),
       //   '/resetPassword': (context) => const PasswordResetPage(),
       // },
-      home: AdminDashboardScreen(),
+      // home: AdminDashboardScreen(),
+      // home: ApprovalScreen(),
+      home: AdminProgressScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
