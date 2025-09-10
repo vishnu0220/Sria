@@ -1,8 +1,8 @@
-import 'package:flow_sphere/screens/calender_screen.dart';
-import 'package:flow_sphere/screens/dashboard_screen.dart';
-import 'package:flow_sphere/screens/profile_screen.dart';
-import 'package:flow_sphere/screens/progress_screen.dart';
-import 'package:flow_sphere/screens/requests_screen.dart';
+import 'package:flow_sphere/screens/userScreens/calender_screen.dart';
+import 'package:flow_sphere/screens/userScreens/dashboard_screen.dart';
+import 'package:flow_sphere/screens/userScreens/profile_screen.dart';
+import 'package:flow_sphere/screens/userScreens/progress_screen.dart';
+import 'package:flow_sphere/screens/userScreens/requests_screen.dart';
 import 'package:flutter/material.dart';
 
 class CustomNavigationDrawer extends StatelessWidget {

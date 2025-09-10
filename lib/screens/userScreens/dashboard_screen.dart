@@ -1,10 +1,8 @@
-import 'package:flow_sphere/screens/navigation_drawer.dart';
+import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
+import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-
-// Assuming you have a CustomAppBar defined in this path
-import 'package:flow_sphere/screens/custom_appbar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
