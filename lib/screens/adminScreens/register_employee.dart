@@ -1,3 +1,4 @@
+import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_form.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/headersection.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/notification_banner.dart';
@@ -48,7 +49,8 @@ class _RegisterEmployeeScreenState extends State<RegisterEmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(leading: BackButton(color: Colors.black)),
+      drawer: AdminNavigationDrawer(),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(

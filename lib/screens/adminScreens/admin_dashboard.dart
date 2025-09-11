@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/dashboard_state_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/recent_activity_card.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
@@ -55,6 +56,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final formattedTime = DateFormat('hh:mm a').format(_currentTime);
     return Scaffold(
       appBar: CustomAppBar(),
+      drawer: AdminNavigationDrawer(),
       backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),

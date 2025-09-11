@@ -1,3 +1,4 @@
+import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/request_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/review_request_dialog.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
@@ -92,7 +93,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(),
-      // drawer: CustomNavigationDrawer(),
+      drawer: AdminNavigationDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

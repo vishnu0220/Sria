@@ -1,4 +1,7 @@
 import 'package:flow_sphere/screens/adminScreens/admin_dashboard.dart';
+import 'package:flow_sphere/screens/adminScreens/approval_screen.dart';
+import 'package:flow_sphere/screens/adminScreens/employees_screen.dart';
+import 'package:flow_sphere/screens/adminScreens/register_employee.dart';
 import 'package:flow_sphere/screens/authScreens/login_screen.dart';
 import 'package:flow_sphere/screens/authScreens/password_reset_page.dart';
 import 'package:flow_sphere/screens/userScreens/calender_screen.dart';
@@ -30,8 +33,18 @@ class MyApp extends StatelessWidget {
       //   '/profile': (context) => const ProfileScreen(),
       //   '/resetPassword': (context) => const PasswordResetPage(),
       // },
-      home: AdminDashboardScreen(),
-      debugShowCheckedModeBanner: false,
+      // home: AdminDashboardScreen(),
+      // debugShowCheckedModeBanner: false,
+      initialRoute: '/admindashboard',
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/admindashboard': (context) => const AdminDashboardScreen(),
+        '/employees': (context) => const EmployeesScreen(),
+        '/register employee': (context) => const RegisterEmployeeScreen(),
+        '/approvals': (context) => const ApprovalScreen(),
+        '/progress view': (context) => const AdminDashboardScreen(),
+        '/settings': (context) => const AdminDashboardScreen(),
+      },
     );
   }
 }
