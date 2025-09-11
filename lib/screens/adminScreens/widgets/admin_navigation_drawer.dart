@@ -1,4 +1,5 @@
 import 'package:flow_sphere/screens/adminScreens/admin_dashboard.dart';
+import 'package:flow_sphere/screens/adminScreens/admin_progress_screen.dart';
 import 'package:flow_sphere/screens/adminScreens/approval_screen.dart';
 import 'package:flow_sphere/screens/adminScreens/employees_screen.dart';
 import 'package:flow_sphere/screens/adminScreens/register_employee.dart';
@@ -41,7 +42,7 @@ class AdminNavigationDrawer extends StatelessWidget {
               context,
               icon: Icons.dashboard,
               label: 'Dashboard',
-              routeName: '/admindashboard',
+              routeName: '/adminDashboard',
               destination: const AdminDashboardScreen(),
               currentRoute: currentRoute,
             ),
@@ -57,7 +58,7 @@ class AdminNavigationDrawer extends StatelessWidget {
               context,
               icon: Icons.person_add_alt,
               label: 'Register Employee',
-              routeName: '/register employee',
+              routeName: '/registerEmployee',
               destination: const RegisterEmployeeScreen(),
               currentRoute: currentRoute,
             ),
@@ -73,8 +74,8 @@ class AdminNavigationDrawer extends StatelessWidget {
               context,
               icon: Icons.bar_chart_outlined,
               label: 'Progress View',
-              routeName: '/progress view',
-              destination: const AdminDashboardScreen(),
+              routeName: '/adminProgress',
+              destination: const AdminProgressScreen(),
               currentRoute: currentRoute,
             ),
             _buildDrawerItem(

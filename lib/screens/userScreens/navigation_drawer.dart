@@ -43,7 +43,7 @@ class CustomNavigationDrawer extends StatelessWidget {
               context,
               icon: Icons.dashboard,
               label: 'Dashboard',
-              routeName: '/dashboard',
+              routeName: '/userDashboard',
               destination: const DashboardScreen(),
               currentRoute: currentRoute,
             ),

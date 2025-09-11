@@ -1,7 +1,6 @@
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_card.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
-import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
 
 class EmployeesScreen extends StatefulWidget {

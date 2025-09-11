@@ -1,3 +1,5 @@
+// login_screen.dart
+
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,15 +23,33 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
+    if (_formKey.currentState?.validate() ?? false) {
+      final email = emailController.text.trim();
+      final domain = _getEmailDomain(email);
+
+      if (domain != null && domain.toLowerCase() == 'example.com') {
+        // If it's an admin
+        Navigator.pushReplacementNamed(context, '/adminDashboard');
+      } else {
+        // Normal user
+        Navigator.pushReplacementNamed(context, '/userDashboard');
+      }
     }
+  }
+
+  String? _getEmailDomain(String email) {
+    // split at '@'
+    final parts = email.split('@');
+    if (parts.length == 2) {
+      return parts[1];
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(), // dismiss keyboard
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -40,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // ... your logo, heading etc.
                   Image.asset("assets/images/flowsphere_logo.png", height: 100),
                   const SizedBox(height: 20),
 
@@ -54,8 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 30),
-
-                  // Email
                   TextFormField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -68,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return "Please enter your email";
                       }
+                      // Simple regex for email
                       if (!RegExp(r"^[^@]+@[^@]+\.[^@]+").hasMatch(value)) {
                         return "Enter a valid email";
                       }
@@ -75,8 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Password
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
@@ -108,8 +126,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-
-                  // Sign In Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -124,13 +140,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Reset Password
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, '/resetPassword');
+                      Navigator.pushNamed(context, '/resetPassword');
                     },
                     child: const Text.rich(
                       TextSpan(
