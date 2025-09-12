@@ -1,5 +1,6 @@
 // login_screen.dart
 
+import 'package:flow_sphere/screens/Services/api_services.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,7 +14,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _auth = AuthService();
+
   bool _obscurePassword = true;
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -22,29 +26,57 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final email = emailController.text.trim();
-      final domain = _getEmailDomain(email);
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      if (domain != null && domain.toLowerCase() == 'example.com') {
-        // If it's an admin
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    setState(() {
+      _loading = true;
+    });
+
+    final result = await _auth.login(email: email, password: password);
+
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+    });
+
+    if (result['success'] == true) {
+      // server returns user in result['user']
+      final user = result['user'] as Map<String, dynamic>?;
+      final role = (user?['role'] ?? '').toString().toUpperCase();
+
+      // Example navigation logic based on role
+      if (role == 'ADMIN' || role == 'ADMINISTRATOR') {
         Navigator.pushReplacementNamed(context, '/adminDashboard');
+      } else if (role == 'EMPLOYEE') {
+        Navigator.pushReplacementNamed(context, '/userDashboard');
       } else {
-        // Normal user
+        // default fallback
         Navigator.pushReplacementNamed(context, '/userDashboard');
       }
+      // Optionally show a success message
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login successful')));
+    } else {
+      final message = result['message'] ?? 'Login failed';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
-  String? _getEmailDomain(String email) {
-    // split at '@'
-    final parts = email.split('@');
-    if (parts.length == 2) {
-      return parts[1];
-    }
-    return null;
-  }
+  // String? _getEmailDomain(String email) {
+  //   // split at '@'
+  //   final parts = email.split('@');
+  //   if (parts.length == 2) {
+  //     return parts[1];
+  //   }
+  //   return null;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -133,11 +165,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Colors.teal,
                       ),
-                      onPressed: _login,
-                      child: const Text(
-                        "Sign in",
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      onPressed: _loading ? null : _login,
+                      child: _loading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.black, // loader color
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Sign In',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                      // child: const Text(
+                      //   "Sign in",
+                      //   style: TextStyle(color: Colors.white),
+                      // ),
                     ),
                   ),
                   const SizedBox(height: 16),
