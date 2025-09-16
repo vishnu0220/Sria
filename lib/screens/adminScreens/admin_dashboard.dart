@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flow_sphere/Services/admin_api_service.dart';
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/dashboard_state_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/recent_activity_card.dart';
@@ -15,14 +17,16 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  int totalEmployees = 38;
-  int presentToday = 34;
+  final AdminApiService apiService = AdminApiService();
+  final authService = AuthService();  
+  int totalEmployees = 0;
+  int presentToday = 0;
   int onLeave = 0;
-  int pendingRequests = 1;
-  List<String> recentActivity = [
-    'Padmakar Reddy Abaka - CHECK_IN at 13:53',
-    'Kollu VishnuVardhan - CHECK_IN at 12:46',
-  ];
+  int pendingRequests = 0;
+  // List<String> recentActivity = [
+
+  // ];
+  List<Map<String, dynamic>> recentActivity = [];
 
   // Dummy user data
   final _fullName = 'Admin User';
@@ -30,9 +34,38 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   DateTime _currentTime = DateTime.now();
   late Timer _timer;
 
+  // final String token =
+  //     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OWVlNTg2M2VkNTBhNzNmYTdlZmVhNyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1ODAxOTY1NSwiZXhwIjoxNzU4NjI0NDU1fQ.vwA7w9clihjaEelErDyXGsOJ1LI1OXDFiZ_thFeDbq8";
+
+  String? token;
+
+  Future<void> _initializeDashboard() async {
+    // ✅ Step 1: get stored token
+    final storedToken = await authService.getToken();
+    if (storedToken == null) {
+      // No token found, redirect back to login
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Session expired, please login again")),
+        );
+        Navigator.pushReplacementNamed(context, "/login");
+      }
+      return;
+    }
+
+    setState(() {
+      token = storedToken;
+    });
+
+    // ✅ Step 2: load dashboard data
+    await _loadDashboardData();
+  }
+
   @override
   void initState() {
     super.initState();
+    // _loadDashboardData();
+    _initializeDashboard();
     // Start a timer to update the current time every second
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -41,6 +74,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         });
       }
     });
+  }
+
+  Future<void> _loadDashboardData() async {
+    try {
+      // Fetch attendance stats
+      final history = await apiService.fetchAttendanceHistory(token!);
+      setState(() {
+        totalEmployees = history['totalEmployees'] ?? 0;
+        presentToday = history['presentToday'] ?? 0;
+        onLeave = history['onLeaveCount'] ?? 0;
+        pendingRequests = history['pendingRequests'] ?? 0;
+      });
+
+      // Fetch recent activity
+      final activities = await apiService.fetchRecentActivities(token!);
+      setState(() {
+        recentActivity = activities.cast<Map<String, dynamic>>();
+      });
+    } catch (e) {
+      print("Error loading dashboard: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
+    }
   }
 
   @override
@@ -112,85 +171,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             const SizedBox(height: 24),
             DashboardStatCard(
               title: 'Total Employees',
-              count: 38,
+              count: totalEmployees,
               icon: Icons.person,
               iconColor: Colors.teal,
             ),
 
             DashboardStatCard(
               title: 'Present Today',
-              count: 38,
+              count: presentToday,
               icon: Icons.check_circle_outline_rounded,
               iconColor: Colors.green,
             ),
 
             DashboardStatCard(
               title: 'On Leave',
-              count: 0,
+              count: onLeave,
               icon: Icons.calendar_today,
               iconColor: Colors.orange,
             ),
             DashboardStatCard(
               title: 'Pending Requests',
-              count: 1,
+              count: pendingRequests,
               icon: Icons.pending,
               iconColor: Colors.red,
             ),
             const SizedBox(height: 16),
             RecentActivityCard(
-              activities: [
-                ActivityItem(
-                  name: 'Harika Veesam',
-                  action: 'CHECK_IN',
-                  time: '11:08',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_OUT',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Vineeth Erramalla',
-                  action: 'CHECK_IN',
-                  time: '11:05',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_IN',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_IN',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_OUT',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_IN',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_OUt',
-                  time: '11:06',
-                ),
-
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_IN',
-                  time: '11:06',
-                ),
-                ActivityItem(
-                  name: 'Snithija Raavi',
-                  action: 'CHECK_IN',
-                  time: '11:06',
-                ),
-              ],
+              activities: recentActivity
+                  .map(
+                    (a) => ActivityItem(
+                      name: a['user']['name'],
+                      action: a['action'],
+                      time: DateFormat(
+                        'hh:mm',
+                      ).format(DateTime.parse(a['createdAt']).toLocal()),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),

@@ -1,4 +1,6 @@
 // main.dart
+import 'package:flow_sphere/Services/login_api_services.dart';
+import 'package:flow_sphere/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 // Auth Screens
@@ -23,15 +25,44 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final AuthService _authService = AuthService();
+  Widget _defaultScreen = const SplashScreen();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final token = await _authService.getToken();
+    final user = await _authService.getStoredUser();
+
+    if (token != null && user != null) {
+      if (user['role'] == 'ADMIN') {
+        setState(() => _defaultScreen = const AdminDashboardScreen());
+      } else {
+        setState(() => _defaultScreen = const DashboardScreen());
+      }
+    } else {
+      setState(() => _defaultScreen = const LoginScreen());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FlowSphere',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      home: _defaultScreen,
       routes: {
         // Authentication
         '/login': (context) => const LoginScreen(),

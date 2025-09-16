@@ -1,3 +1,4 @@
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/admin_dashboard.dart';
 import 'package:flow_sphere/screens/adminScreens/admin_progress_screen.dart';
 import 'package:flow_sphere/screens/adminScreens/approval_screen.dart';
@@ -127,8 +128,17 @@ class AdminNavigationDrawer extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.logout),
                 label: const Text('Sign Out'),
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/login');
+                onPressed: () async {
+                  final authService = AuthService();
+                  await authService.logout();
+                  // Navigator.pushReplacementNamed(context, '/login');
+
+                  Navigator.pushNamedAndRemoveUntil(
+                    // ignore: use_build_context_synchronously
+                    context,
+                    '/login',
+                    (route) => false,
+                  );
                 },
               ),
             ),
