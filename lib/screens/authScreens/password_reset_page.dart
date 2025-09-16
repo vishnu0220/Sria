@@ -1,4 +1,8 @@
+// password_reset_page.dart
+
+import 'package:flow_sphere/Services/forgotpassword_api_service.dart';
 import 'package:flutter/material.dart';
+import 'verify_code_page.dart';
 
 class PasswordResetPage extends StatefulWidget {
   const PasswordResetPage({super.key});
@@ -9,6 +13,58 @@ class PasswordResetPage extends StatefulWidget {
 
 class _PasswordResetPageState extends State<PasswordResetPage> {
   final TextEditingController emailController = TextEditingController();
+  bool _isLoading = false;
+
+  void _sendResetCode() async {
+    final email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please enter your email")));
+      return;
+    }
+
+    // Basic email validation
+    if (!RegExp(r"^[^@]+@[^@]+\.[^@]+").hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final api = ApiService();
+      final result = await api.forgotPassword(email);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'] ?? "OTP sent")));
+
+      // Navigate to VerifyCodePage, passing email only
+      // Remove the empty otp parameter or pass a placeholder
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VerifyCodePage(email: email, otp: ""), // Pass empty string as placeholder
+        ),
+      );
+      
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,19 +78,16 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
             children: [
               Image.asset("assets/images/flowsphere_logo.png", height: 100),
               const SizedBox(height: 20),
-
               const Text(
                 "Forgot Password",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-
               const Text(
                 "Enter your email to receive a reset code",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 30),
-
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -46,16 +99,13 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                   children: [
                     const Row(
                       children: [
-                        Icon(
-                          Icons.email_outlined,
-                          //color: Colors.teal,
-                        ),
+                        Icon(Icons.email_outlined),
                         SizedBox(width: 8),
                         Text(
                           "Reset Password",
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 24,
                           ),
                         ),
                       ],
@@ -66,7 +116,6 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
-
                     TextField(
                       controller: emailController,
                       decoration: const InputDecoration(
@@ -77,7 +126,6 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 20),
-
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -85,22 +133,26 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: Colors.teal,
                         ),
-                        onPressed: () {
-                          // implement the backend performing Send reset code
-                          null;
-                        },
-                        child: const Text(
-                          "Send Reset Code",
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        onPressed: _isLoading ? null : _sendResetCode,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Send Reset Code",
+                                style: TextStyle(color: Colors.white),
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               TextButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
