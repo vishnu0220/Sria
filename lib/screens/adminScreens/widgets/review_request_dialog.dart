@@ -9,6 +9,9 @@ class Request {
   final String date;
   final String leaveType;
   final String reason;
+  final String? endDate;
+  final String? actionDate;
+  final String? expectedLogoffTime;
 
   Request({
     required this.type,
@@ -18,6 +21,9 @@ class Request {
     required this.date,
     required this.leaveType,
     required this.reason,
+    this.endDate,
+    this.actionDate,
+    this.expectedLogoffTime,
   });
 }
 
@@ -62,16 +68,23 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
             const SizedBox(height: 16),
             const Text('Date Range'),
             Text(
-              widget.request.date,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              widget.request.endDate != widget.request.date
+                  ? "${widget.request.date} to ${widget.request.endDate}"
+                  : widget.request.date,
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 16),
+
             const SizedBox(height: 16),
             const Text('Leave Type'),
             Text(
-              widget.request.leaveType,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              widget.request.expectedLogoffTime != null
+                  ? "${widget.request.leaveType} at ${widget.request.expectedLogoffTime}"
+                  : widget.request.leaveType,
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+
             const Text('Reason'),
             Text(
               widget.request.reason,

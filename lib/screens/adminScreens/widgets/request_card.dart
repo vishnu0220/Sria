@@ -12,6 +12,8 @@ class RequestCard extends StatelessWidget {
         return Colors.amber.shade800;
       case 'APPROVED':
         return Colors.green.shade800;
+      case 'REJECTED':
+        return Colors.red.shade800;
       default:
         return Colors.grey.shade800;
     }
@@ -23,6 +25,8 @@ class RequestCard extends StatelessWidget {
         return Colors.amber.shade100;
       case 'APPROVED':
         return Colors.green.shade100;
+      case 'REJECTED':
+        return Colors.red.shade100;
       default:
         return Colors.grey.shade100;
     }
@@ -39,7 +43,8 @@ class RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isApproved = request.status == 'APPROVED';
+    final bool isReviewed =
+        request.status == 'APPROVED' || request.status == 'REJECTED';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -86,7 +91,7 @@ class RequestCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     request.name,
                     style: TextStyle(
@@ -149,17 +154,17 @@ class RequestCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16.0),
               child: OutlinedButton.icon(
-                onPressed: isApproved
+                onPressed: isReviewed
                     ? null
                     : () => _showReviewDialog(context, request),
                 icon: const Icon(Icons.remove_red_eye_outlined),
                 label: const Text('Review'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: isApproved
+                  foregroundColor: isReviewed
                       ? Colors.grey
                       : Colors.blue.shade700,
                   side: BorderSide(
-                    color: isApproved ? Colors.grey : Colors.blue.shade700,
+                    color: isReviewed ? Colors.grey : Colors.blue.shade700,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

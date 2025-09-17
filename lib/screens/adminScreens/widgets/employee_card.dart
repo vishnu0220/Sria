@@ -5,6 +5,21 @@ class EmployeeCard extends StatelessWidget {
 
   const EmployeeCard({super.key, required this.emp});
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case "present":
+        return Colors.green;
+      case "absent":
+        return Colors.red;
+      case "on leave":
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -31,15 +46,17 @@ class EmployeeCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: emp["status"] == "Present"
-                    ? Colors.green.shade100
-                    : Colors.red.shade100,
+                // color: emp["status"] == "Present"
+                //     ? Colors.green.shade100
+                //     : Colors.red.shade100,
+                color: _getStatusColor(emp["status"]).withAlpha(52),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 emp["status"],
                 style: TextStyle(
-                  color: emp["status"] == "Present" ? Colors.green : Colors.red,
+                  // color: emp["status"] == "Present" ? Colors.green : Colors.red,
+                  color: _getStatusColor(emp["status"]),
                   fontWeight: FontWeight.bold,
                 ),
               ),

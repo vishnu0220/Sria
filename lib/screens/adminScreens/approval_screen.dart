@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/request_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/review_request_dialog.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class ApprovalScreen extends StatefulWidget {
   const ApprovalScreen({super.key});
@@ -12,73 +16,108 @@ class ApprovalScreen extends StatefulWidget {
 }
 
 class _ApprovalScreenState extends State<ApprovalScreen> {
-  // NOTE: This is where you would call your backend API to fetch real-time data.
-  // The list below is for demonstration purposes. Replace this with your API fetch logic.
-  // A common approach is to use a StatefulWidget and call an asynchronous function in initState().
-  final List<Request> _staticRequests = [
-    Request(
-      type: 'Leave Request',
-      status: 'PENDING',
-      name: 'Madhuri Bendi',
-      email: 'bendimadhuri@gmail.com',
-      date: 'Sep 10, 2025',
-      leaveType: 'Casual Leave',
-      reason: 'Need to visit Aadhar center.',
-    ),
-    Request(
-      type: 'Leave Request',
-      status: 'PENDING',
-      name: 'Safura Samreen',
-      email: 'safurasamreenshaik@gmail.com',
-      date: 'Sep 12, 2025',
-      leaveType: 'Sick Leave',
-      reason: 'Due to severe headache...',
-    ),
-    Request(
-      type: 'Leave Request',
-      status: 'PENDING',
-      name: 'Pasham Bharath Reddy',
-      email: 'bharathreddy123.pasham@gmail.com',
-      date: 'Sep 11, 2025 - Sep 12, 2025',
-      leaveType: 'Casual Leave',
-      reason: 'We are planning for the family...',
-    ),
-    Request(
-      type: 'Leave Request',
-      status: 'APPROVED',
-      name: 'Chada Sitharam',
-      email: 'chadasitharam@gmail.com',
-      date: 'Sep 08, 2025',
-      leaveType: 'Casual Leave',
-      reason: 'I would like to request leave...',
-    ),
-    Request(
-      type: 'Early Logoff Request',
-      status: 'PENDING',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      date: 'Sep 13, 2025',
-      leaveType: 'N/A',
-      reason: 'Early logoff due to a doctor\'s appointment.',
-    ),
-    Request(
-      type: 'Early Logoff Request',
-      status: 'APPROVED',
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      date: 'Sep 09, 2025',
-      leaveType: 'N/A',
-      reason: 'Early logoff to pick up child from school.',
-    ),
-  ];
-
+  final AuthService _authService = AuthService();
+  List<Request> _requests = [];
   String _selectedFilter = 'All Requests';
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequests();
+  }
+
+  Future<void> _fetchRequests() async {
+    try {
+      final token = await _authService.getToken();
+
+      if (token == null) {
+        setState(() {
+          _errorMessage = "No token found. Please log in again.";
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse("https://leave-backend-vbw6.onrender.com/api/admin/requests"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        setState(() {
+          _requests = data.map((json) {
+            String formatDate(String? rawDate) {
+              if (rawDate == null) return "N/A";
+              try {
+                DateTime utcDate = DateTime.parse(rawDate);
+                DateTime istDate = utcDate.toLocal();
+                return DateFormat('dd-MMM-yyyy').format(istDate);
+              } catch (e) {
+                return rawDate;
+              }
+            }
+
+            String getTime(String? rawDate) {
+              if (rawDate == null) return "N/A";
+              try {
+                DateTime utcDate = DateTime.parse(rawDate);
+                DateTime istDate = utcDate.toLocal();
+                return DateFormat(
+                  'dd-MMM-yyyy, hh:mm a',
+                ).format(istDate).split(',')[0];
+              } catch (e) {
+                return rawDate;
+              }
+            }
+
+            return Request(
+              type: json['type'] ?? 'Unknown',
+              status: json['status'] ?? 'PENDING',
+              name: json['user']['name'] ?? 'Unknown',
+              email: json['user']['email'] ?? 'Unknown',
+              date: formatDate(json['start_date']),
+              leaveType: json['type'] ?? 'N/A',
+              reason: json['reason'] ?? 'No reason provided',
+              endDate: json['end_date'] != null
+                  ? formatDate(json['end_date'])
+                  : null,
+              actionDate: json['action_date'] != null
+                  ? formatDate(json['action_date'])
+                  : null,
+              expectedLogoffTime: json['expected_checkout_time'] != null
+                  ? getTime(json['expected_checkout_time'])
+                  : null,
+            );
+          }).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage =
+              "Failed to load requests. Status Code: ${response.statusCode}";
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error: $e";
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Request> get _filteredRequests {
     if (_selectedFilter == 'All Requests') {
-      return _staticRequests;
+      return _requests;
     }
-    return _staticRequests
+    return _requests
         .where((request) => request.type == _selectedFilter)
         .toList();
   }
@@ -94,53 +133,74 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: AdminNavigationDrawer(),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Manage Requests',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1f2937),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Review and approve employee leave and early logoff requests.',
-              style: TextStyle(fontSize: 16, color: Color(0xFF6b7280)),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+            ? Center(
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _FilterButton(
-                    label: 'All Requests',
-                    isSelected: _selectedFilter == 'All Requests',
-                    onPressed: () => _updateFilter('All Requests'),
+                  const Text(
+                    'Manage Requests',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1f2937),
+                    ),
                   ),
-                  _FilterButton(
-                    label: 'Leave Requests',
-                    isSelected: _selectedFilter == 'Leave Request',
-                    onPressed: () => _updateFilter('Leave Request'),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Review and approve employee leave and early logoff requests.',
+                    style: TextStyle(fontSize: 16, color: Color(0xFF6b7280)),
                   ),
-                  _FilterButton(
-                    label: 'Early Logoff',
-                    isSelected: _selectedFilter == 'Early Logoff Request',
-                    onPressed: () => _updateFilter('Early Logoff Request'),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _FilterButton(
+                        label: 'All Requests',
+                        isSelected: _selectedFilter == 'All Requests',
+                        onPressed: () => _updateFilter('All Requests'),
+                      ),
+                      _FilterButton(
+                        label: 'Leave Requests',
+                        isSelected: _selectedFilter == 'Leave Request',
+                        onPressed: () => _updateFilter('Leave Request'),
+                      ),
+                      _FilterButton(
+                        label: 'Early Logoff',
+                        isSelected: _selectedFilter == 'Early Logoff Request',
+                        onPressed: () => _updateFilter('Early Logoff Request'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: _filteredRequests.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "No requests found",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _filteredRequests.length,
+                            itemBuilder: (context, index) {
+                              return RequestCard(
+                                request: _filteredRequests[index],
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            ..._filteredRequests.map(
-              (request) => RequestCard(request: request),
-            ),
-          ],
-        ),
       ),
     );
   }

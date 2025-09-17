@@ -33,7 +33,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       "checkIn": "09:30",
       "checkOut": "Invalid Date",
       "task": "NILL",
-      "status": "Present",
+      "status": "on leave",
     },
     {
       "name": "Safura Samreen",
