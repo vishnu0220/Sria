@@ -18,8 +18,6 @@ class EmployeeCard extends StatelessWidget {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -35,27 +33,32 @@ class EmployeeCard extends StatelessWidget {
           children: [
             Text(emp["role"]),
             Text(emp["department"]),
-            Text("In: ${emp["checkIn"]} | Out: ${emp["checkOut"]}"),
+            // Text("In: ${emp["checkIn"]} | Out: ${emp["checkOut"]}"),
+            Text(
+              "In: ${emp["checkIn"]}",
+              style: TextStyle(color: Colors.green),
+            ),
+            Text(
+              "Out: ${emp["checkOut"]}",
+              style: TextStyle(color: Colors.red),
+            ),
           ],
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(emp["task"]),
-            const SizedBox(height: 4),
+            // Text(emp["task"]),
+            // const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                // color: emp["status"] == "Present"
-                //     ? Colors.green.shade100
-                //     : Colors.red.shade100,
-                color: _getStatusColor(emp["status"]).withAlpha(52),
+                // ignore: deprecated_member_use
+                color: _getStatusColor(emp["status"]).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 emp["status"],
                 style: TextStyle(
-                  // color: emp["status"] == "Present" ? Colors.green : Colors.red,
                   color: _getStatusColor(emp["status"]),
                   fontWeight: FontWeight.bold,
                 ),

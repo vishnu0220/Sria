@@ -1,3 +1,4 @@
+import 'package:flow_sphere/Services/attendance_service.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_card.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
@@ -16,6 +17,9 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
   DateTime selectedDate = DateTime.now();
   String searchQuery = "";
 
+  bool isLoading = false;
+  List<Map<String, dynamic>> employees = [];
+
   final List<String> departments = [
     "All Departments",
     "Development",
@@ -23,82 +27,34 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
     "Data Analytics",
   ];
 
-  final List<String> statusOptions = ["All", "Present", "Absent"];
+  final List<String> statusOptions = ["All", "Present", "Absent", "On Leave"];
 
-  final List<Map<String, dynamic>> employees = [
-    {
-      "name": "Kollu Vishnuvardhan",
-      "role": "EMPLOYEE",
-      "department": "Development",
-      "checkIn": "09:30",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "on leave",
-    },
-    {
-      "name": "Safura Samreen",
-      "role": "EMPLOYEE",
-      "department": "Development",
-      "checkIn": "02:48",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "Present",
-    },
-    {
-      "name": "Malladi Srinivas Reddy",
-      "role": "EMPLOYEE",
-      "department": "Development",
-      "checkIn": "10:25",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "Present",
-    },
-    {
-      "name": "Shiva Surya",
-      "role": "EMPLOYEE",
-      "department": "Development",
-      "checkIn": "--",
-      "checkOut": "--",
-      "task": "NILL",
-      "status": "Absent",
-    },
-    {
-      "name": "Kunjra Pramod Manjani",
-      "role": "EMPLOYEE",
-      "department": "SAP",
-      "checkIn": "10:08",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "Present",
-    },
-    {
-      "name": "Velma Snehith Reddy",
-      "role": "EMPLOYEE",
-      "department": "SAP",
-      "checkIn": "10:43",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "Present",
-    },
-    {
-      "name": "Teerdaveni Gedela",
-      "role": "EMPLOYEE",
-      "department": "Data Analytics",
-      "checkIn": "--",
-      "checkOut": "--",
-      "task": "NILL",
-      "status": "Absent",
-    },
-    {
-      "name": "Sridevi Gedela",
-      "role": "EMPLOYEE",
-      "department": "SAP",
-      "checkIn": "10:46",
-      "checkOut": "Invalid Date",
-      "task": "NILL",
-      "status": "Present",
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchEmployees();
+  }
+
+  Future<void> fetchEmployees() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final dateStr =
+          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+      print("Fetching attendance for date: $dateStr");
+      final data = await AttendanceApiService.getAttendanceByDate(dateStr);
+      setState(() {
+        employees = data;
+      });
+    } catch (e) {
+      print("Error fetching employees: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   // Date picker
   Future<void> _pickDate(BuildContext context) async {
@@ -112,6 +68,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       setState(() {
         selectedDate = picked;
       });
+      fetchEmployees();
     }
   }
 
@@ -193,7 +150,9 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       selectedDepartment = "All Departments";
       selectedStatus = "All";
       selectedDate = DateTime.now();
+      isLoading = true; // start loader
     });
+    fetchEmployees(); // re-fetch from API
   }
 
   @override
@@ -298,7 +257,9 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
 
             // Employee list
             Expanded(
-              child: filteredEmployees.isEmpty
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredEmployees.isEmpty
                   ? const Center(
                       child: Text(
                         "No employees found",
