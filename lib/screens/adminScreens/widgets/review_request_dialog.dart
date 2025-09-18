@@ -67,14 +67,29 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
             ),
             const SizedBox(height: 16),
             const Text('Date Range'),
+            // Text(
+            //   widget.request.endDate != widget.request.date
+            //       ? "${widget.request.date} to ${widget.request.endDate}"
+            //       : widget.request.date,
+            //   style: TextStyle(fontWeight: FontWeight.bold),
+            // ),
             Text(
-              widget.request.endDate != widget.request.date
-                  ? "${widget.request.date} to ${widget.request.endDate}"
-                  : widget.request.date,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              (() {
+                if (widget.request.leaveType == "LEAVE" &&
+                    widget.request.endDate != null &&
+                    widget.request.endDate != widget.request.date) {
+                  return "${widget.request.date} to ${widget.request.endDate}";
+                } else if (widget.request.leaveType == "EARLY_LOGOFF") {
+                  return widget.request.date;
+                } else if (widget.request.leaveType == "CHECKOUT") {
+                  return widget.request.date;
+                } else {
+                  // fallback (in case a new type comes later)
+                  return widget.request.date;
+                }
+              })(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-
             const SizedBox(height: 16),
             const Text('Leave Type'),
             Text(

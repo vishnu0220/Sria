@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
@@ -21,6 +22,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
   String _selectedFilter = 'All Requests';
   bool _isLoading = true;
   String? _errorMessage;
+  DateTime? _lastUpdated;
 
   @override
   void initState() {
@@ -97,6 +99,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
             );
           }).toList();
           _isLoading = false;
+          _lastUpdated = DateTime.now();
         });
       } else {
         setState(() {
@@ -126,6 +129,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
     setState(() {
       _selectedFilter = filter;
     });
+    _fetchRequests();
   }
 
   @override
@@ -147,13 +151,26 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Manage Requests',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1f2937),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Manage Requests',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1f2937),
+                        ),
+                      ),
+                      if (_lastUpdated != null)
+                        Text(
+                          "Last updated\n${DateFormat('hh:mm a').format(_lastUpdated!)}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6b7280),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -165,39 +182,42 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _FilterButton(
-                        label: 'All Requests',
+                        label: 'All',
                         isSelected: _selectedFilter == 'All Requests',
                         onPressed: () => _updateFilter('All Requests'),
                       ),
                       _FilterButton(
-                        label: 'Leave Requests',
-                        isSelected: _selectedFilter == 'Leave Request',
-                        onPressed: () => _updateFilter('Leave Request'),
+                        label: 'Leave',
+                        isSelected: _selectedFilter == 'LEAVE',
+                        onPressed: () => _updateFilter('LEAVE'),
                       ),
                       _FilterButton(
                         label: 'Early Logoff',
-                        isSelected: _selectedFilter == 'Early Logoff Request',
-                        onPressed: () => _updateFilter('Early Logoff Request'),
+                        isSelected: _selectedFilter == 'EARLY_LOGOFF',
+                        onPressed: () => _updateFilter('EARLY_LOGOFF'),
+                      ),
+                      _FilterButton(
+                        label: 'Check Out',
+                        isSelected: _selectedFilter == 'CHECKOUT',
+                        onPressed: () => _updateFilter('CHECKOUT'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: _filteredRequests.isEmpty
-                        ? const Center(
-                            child: Text(
-                              "No requests found",
-                              style: TextStyle(fontSize: 16),
+                    child: RefreshIndicator(
+                      onRefresh: _fetchRequests,
+                      child: _filteredRequests.isEmpty
+                          ? const Center(child: Text("No requests found"))
+                          : ListView.builder(
+                              itemCount: _filteredRequests.length,
+                              itemBuilder: (context, index) {
+                                return RequestCard(
+                                  request: _filteredRequests[index],
+                                );
+                              },
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: _filteredRequests.length,
-                            itemBuilder: (context, index) {
-                              return RequestCard(
-                                request: _filteredRequests[index],
-                              );
-                            },
-                          ),
+                    ),
                   ),
                 ],
               ),
