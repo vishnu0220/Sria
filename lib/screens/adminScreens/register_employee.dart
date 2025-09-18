@@ -1,3 +1,4 @@
+import 'package:flow_sphere/Services/register_employee_service.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_form.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/headersection.dart';
@@ -18,6 +19,9 @@ class _RegisterEmployeeScreenState extends State<RegisterEmployeeScreen> {
   final TextEditingController passwordController = TextEditingController();
   String? department;
   String? role = 'Employee';
+  bool isLoading = false;
+
+  final UserService _userService = UserService();
 
   @override
   void dispose() {
@@ -38,10 +42,33 @@ class _RegisterEmployeeScreenState extends State<RegisterEmployeeScreen> {
     });
   }
 
-  void registerEmployee() {
-    if (_formKey.currentState?.validate() ?? false) {
+  Future<void> registerEmployee() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => isLoading = true);
+
+    final employeeData = {
+      "name": fullNameController.text.trim(),
+      "email": emailController.text.trim(),
+      "password": passwordController.text.trim(),
+      "department": department,
+      "role": role,
+    };
+
+    final result = await _userService.registerEmployee(employeeData);
+
+    setState(() => isLoading = false);
+
+    if (!mounted) return;
+
+    if (result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Employee registered successfully')),
+        const SnackBar(content: Text('Employee registered successfully ✅')),
+      );
+      clearForm();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Registration failed ❌')),
       );
     }
   }

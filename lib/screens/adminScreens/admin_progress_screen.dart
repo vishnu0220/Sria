@@ -203,7 +203,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
       appBar: CustomAppBar(),
       drawer: AdminNavigationDrawer(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -386,7 +386,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 DateFormat(
-                                  'MMM dd, yyyy',
+                                  'MMM dd',
                                 ).format(_selectedDate),
                                 style: const TextStyle(color: Colors.black),
                               ),
