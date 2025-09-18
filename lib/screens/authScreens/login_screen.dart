@@ -1,5 +1,3 @@
-// login_screen.dart
-
 import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flutter/material.dart';
 
@@ -62,21 +60,16 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
     } else {
-      final message = result['message'] ?? 'Login failed';
+      String message = result['message'] ?? 'Login failed';
+      if (message[0] == 'C') {
+        message =
+            "Could not connect\nPlease check your internet connection and try again.";
+      }
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
-
-  // String? _getEmailDomain(String email) {
-  //   // split at '@'
-  //   final parts = email.split('@');
-  //   if (parts.length == 2) {
-  //     return parts[1];
-  //   }
-  //   return null;
-  // }
 
   @override
   Widget build(BuildContext context) {
