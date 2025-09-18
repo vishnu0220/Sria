@@ -80,6 +80,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
             }
 
             return Request(
+              id: json['_id'] ?? '',
               type: json['type'] ?? 'Unknown',
               status: json['status'] ?? 'PENDING',
               name: json['user']['name'] ?? 'Unknown',
@@ -212,8 +213,24 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
                           : ListView.builder(
                               itemCount: _filteredRequests.length,
                               itemBuilder: (context, index) {
+                                // Get the request from filtered list
+                                final request = _filteredRequests[index];
                                 return RequestCard(
-                                  request: _filteredRequests[index],
+                                  request: request,
+                                  onUpdateStatus: (newStatus) {
+                                    setState(() {
+                                      // Update the status in the main _requests list
+                                      final requestIndex = _requests.indexWhere(
+                                        (r) => r.id == request.id,
+                                      );
+                                      if (requestIndex != -1) {
+                                        _requests[requestIndex] =
+                                            _requests[requestIndex].copyWith(
+                                              status: newStatus,
+                                            );
+                                      }
+                                    });
+                                  },
                                 );
                               },
                             ),

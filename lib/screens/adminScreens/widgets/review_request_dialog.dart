@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flow_sphere/Services/login_api_services.dart';
 
-// Represents a single user request.
 class Request {
+  final String id;
   final String type;
   final String status;
   final String name;
@@ -14,6 +17,7 @@ class Request {
   final String? expectedLogoffTime;
 
   Request({
+    required this.id,
     required this.type,
     required this.status,
     required this.name,
@@ -25,6 +29,23 @@ class Request {
     this.actionDate,
     this.expectedLogoffTime,
   });
+
+  // copyWith to update request locally
+  Request copyWith({String? status}) {
+    return Request(
+      id: id,
+      type: type,
+      status: status ?? this.status,
+      name: name,
+      email: email,
+      date: date,
+      leaveType: leaveType,
+      reason: reason,
+      endDate: endDate,
+      actionDate: actionDate,
+      expectedLogoffTime: expectedLogoffTime,
+    );
+  }
 }
 
 class ReviewRequestDialog extends StatefulWidget {
@@ -38,6 +59,67 @@ class ReviewRequestDialog extends StatefulWidget {
 
 class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
   String? _selectedDecision;
+  final TextEditingController _commentController = TextEditingController();
+  bool _isSubmitting = false;
+
+  Future<void> _submitDecision() async {
+    if (_selectedDecision == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    final AuthService authService = AuthService();
+    final token = await authService.getToken();
+
+    if (token == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Authentication failed. Please login.")),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+    String status = _selectedDecision == "Approve" ? "APPROVED" : "REJECTED";
+
+    final payload = {
+      "status": status,
+      "comment": _commentController.text.trim(),
+    };
+
+    final url =
+        "https://leave-backend-vbw6.onrender.com/api/admin/requests/${widget.request.id}/decision";
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        Navigator.of(context).pop(status); // return updated status
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Decision submitted successfully!")),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to submit: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,24 +149,13 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
             ),
             const SizedBox(height: 16),
             const Text('Date Range'),
-            // Text(
-            //   widget.request.endDate != widget.request.date
-            //       ? "${widget.request.date} to ${widget.request.endDate}"
-            //       : widget.request.date,
-            //   style: TextStyle(fontWeight: FontWeight.bold),
-            // ),
             Text(
               (() {
                 if (widget.request.leaveType == "LEAVE" &&
                     widget.request.endDate != null &&
                     widget.request.endDate != widget.request.date) {
                   return "${widget.request.date} to ${widget.request.endDate}";
-                } else if (widget.request.leaveType == "EARLY_LOGOFF") {
-                  return widget.request.date;
-                } else if (widget.request.leaveType == "CHECKOUT") {
-                  return widget.request.date;
                 } else {
-                  // fallback (in case a new type comes later)
                   return widget.request.date;
                 }
               })(),
@@ -96,10 +167,9 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
               widget.request.expectedLogoffTime != null
                   ? "${widget.request.leaveType} at ${widget.request.expectedLogoffTime}"
                   : widget.request.leaveType,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-
             const Text('Reason'),
             Text(
               widget.request.reason,
@@ -136,9 +206,10 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
             const SizedBox(height: 16),
             const Text('Comment (Optional)'),
             const SizedBox(height: 8),
-            const TextField(
+            TextField(
+              controller: _commentController,
               maxLines: 2,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
@@ -151,9 +222,7 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
       actions: <Widget>[
         TextButton(
           child: const Text('Cancel', style: TextStyle(color: Colors.black)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
         TextButton(
           style: TextButton.styleFrom(
@@ -165,14 +234,17 @@ class _ReviewRequestDialogState extends State<ReviewRequestDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          onPressed: isDecisionMade
-              ? () {
-                  // Implement submission logic here
-                  debugPrint('Decision: $_selectedDecision');
-                  Navigator.of(context).pop();
-                }
-              : null,
-          child: const Text('Submit Decision'),
+          onPressed: isDecisionMade && !_isSubmitting ? _submitDecision : null,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Submit Decision'),
         ),
       ],
     );

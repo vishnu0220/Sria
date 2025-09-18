@@ -1,10 +1,15 @@
-import 'package:flow_sphere/screens/adminScreens/widgets/review_request_dialog.dart';
 import 'package:flutter/material.dart';
+import 'review_request_dialog.dart';
 
 class RequestCard extends StatelessWidget {
   final Request request;
+  final Function(String) onUpdateStatus; // callback to update status
 
-  const RequestCard({super.key, required this.request});
+  const RequestCard({
+    super.key,
+    required this.request,
+    required this.onUpdateStatus,
+  });
 
   Color _getStatusColor(String status) {
     switch (status) {
@@ -32,13 +37,15 @@ class RequestCard extends StatelessWidget {
     }
   }
 
-  void _showReviewDialog(BuildContext context, Request request) {
-    showDialog(
+  void _showReviewDialog(BuildContext context) async {
+    final updatedStatus = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return ReviewRequestDialog(request: request);
-      },
+      builder: (BuildContext context) => ReviewRequestDialog(request: request),
     );
+
+    if (updatedStatus != null) {
+      onUpdateStatus(updatedStatus);
+    }
   }
 
   @override
@@ -62,7 +69,6 @@ class RequestCard extends StatelessWidget {
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 8,
-                    runSpacing: 8,
                     children: [
                       Text(
                         request.type,
@@ -154,9 +160,7 @@ class RequestCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16.0),
               child: OutlinedButton.icon(
-                onPressed: isReviewed
-                    ? null
-                    : () => _showReviewDialog(context, request),
+                onPressed: isReviewed ? null : () => _showReviewDialog(context),
                 icon: const Icon(Icons.remove_red_eye_outlined),
                 label: const Text('Review'),
                 style: OutlinedButton.styleFrom(
