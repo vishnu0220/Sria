@@ -1,4 +1,3 @@
-// Summary Card Widget
 import 'package:flutter/material.dart';
 
 class SummaryCard extends StatelessWidget {

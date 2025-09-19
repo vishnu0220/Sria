@@ -9,18 +9,17 @@ class ExportProgressDialog extends StatefulWidget {
 }
 
 class _ExportProgressDialogState extends State<ExportProgressDialog> {
-  DateTime _fromDate = DateTime.now().subtract(const Duration(days: 7));
-  DateTime _toDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
 
   // Function to show the date picker.
-  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isFromDate ? _fromDate : _toDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(), // Disable future dates
-      helpText: 'Select ${isFromDate ? 'Start' : 'End'} Date',
+      initialDate: _selectedDate,
+      firstDate: DateTime(2025, 8),
+      lastDate: DateTime.now(),
+      helpText: 'Select Date',
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -34,13 +33,9 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        if (isFromDate) {
-          _fromDate = picked;
-        } else {
-          _toDate = picked;
-        }
+        _selectedDate = picked;
       });
     }
   }
@@ -54,10 +49,8 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
     // Simulate a network request or heavy query.
     await Future.delayed(const Duration(seconds: 2));
 
-    // NOTE: This is where you will add your backend API call to download the Excel file.
-    // Example:
-    // final response = await http.get(Uri.parse('your_backend_url/export?from=$_fromDate&to=$_toDate'));
-    // Handle the file download using a library like dio or a native plugin.
+    // NOTE: Replace with your backend API call.
+    // Example: final response = await http.get(Uri.parse('your_backend_url/export?date=$_selectedDate'));
 
     setState(() {
       _isLoading = false;
@@ -72,17 +65,26 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Export Progress',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                const Row(
+                  children: [
+                    Icon(Icons.description, color: Colors.black54),
+                    SizedBox(width: 8),
+                    Text(
+                      'Export Progress',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -90,110 +92,107 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: CircularProgressIndicator(),
+            const SizedBox(height: 8),
+            const Text(
+              'Select a date to export your progress data as an Excel\nspreadsheet.',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Select Date',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => _selectDate(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-              )
-            else
-              Column(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFf3f4f6),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        DateFormat('MMM dd, yyyy').format(_selectedDate),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_down, size: 24),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFf0f4f9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Select a date range for the progress report:',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    'Export Preview:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectDate(context, true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFf3f4f6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.calendar_today, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'From: ${DateFormat('MMM dd, yyyy').format(_fromDate)}',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectDate(context, false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFf3f4f6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.calendar_today, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'To: ${DateFormat('MMM dd, yyyy').format(_toDate)}',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Progress data for ${DateFormat('MMM dd, yyyy').format(_selectedDate)} will be exported as an Excel file containing tasks, progress percentages, and notes.',
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
-                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0d6efd),
+                      side: const BorderSide(color: Colors.transparent),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: _exportToExcel,
-                    icon: const Icon(Icons.description, size: 20),
-                    label: const Text('Export Excel'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade700,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 48),
+                    icon: const Icon(
+                      Icons.download,
+                      size: 20,
+                      color: Colors.white,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {}, // Not implemented as per request
-                    icon: const Icon(Icons.picture_as_pdf, size: 20),
-                    label: const Text('Export PDF'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                      side: BorderSide(color: Colors.red.shade700),
+                    label: const Text(
+                      'Export Excel',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF198754),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
                     ),
                   ),
                 ],
