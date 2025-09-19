@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flow_sphere/Services/admin_api_service.dart';
-import 'package:flow_sphere/Services/login_api_services.dart';
+import 'package:flow_sphere/Services/Admin_services/admin_api_service.dart';
+import 'package:flow_sphere/Services/Admin_services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/dashboard_state_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/recent_activity_card.dart';
@@ -18,7 +18,7 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final AdminApiService apiService = AdminApiService();
-  final authService = AuthService();  
+  final authService = AuthService();
   int totalEmployees = 0;
   int presentToday = 0;
   int onLeave = 0;
@@ -29,19 +29,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   List<Map<String, dynamic>> recentActivity = [];
 
   // Dummy user data
-  final _fullName = 'Admin User';
+  String fullName = '';
 
   DateTime _currentTime = DateTime.now();
   late Timer _timer;
-
-  // final String token =
-  //     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OWVlNTg2M2VkNTBhNzNmYTdlZmVhNyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1ODAxOTY1NSwiZXhwIjoxNzU4NjI0NDU1fQ.vwA7w9clihjaEelErDyXGsOJ1LI1OXDFiZ_thFeDbq8";
 
   String? token;
 
   Future<void> _initializeDashboard() async {
     // ✅ Step 1: get stored token
     final storedToken = await authService.getToken();
+    // ignore: unused_local_variable
+    final user = await authService.getStoredUser();
+    fullName = user!['name'].toString();
+
     if (storedToken == null) {
       // No token found, redirect back to login
       if (mounted) {
@@ -131,7 +132,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hi, $_fullName',
+                        'Hi, $fullName',
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
