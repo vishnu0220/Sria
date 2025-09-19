@@ -1,5 +1,10 @@
+import 'dart:io';
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ExportProgressDialog extends StatefulWidget {
   const ExportProgressDialog({super.key});
@@ -12,7 +17,6 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
 
-  // Function to show the date picker.
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -25,9 +29,6 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
           data: ThemeData.light().copyWith(
             primaryColor: const Color(0xFF0d6efd),
             colorScheme: const ColorScheme.light(primary: Color(0xFF0d6efd)),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
           ),
           child: child!,
         );
@@ -40,24 +41,111 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
     }
   }
 
-  // Placeholder function for exporting to Excel
+  Future<bool> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      // First try normal storage permission
+      if (await Permission.storage.request().isGranted) {
+        return true;
+      }
+      // If Android 11+ requires MANAGE_EXTERNAL_STORAGE
+      if (await Permission.manageExternalStorage.request().isGranted) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _exportToExcel() async {
+    final AuthService authService = AuthService();
+    final token = await authService.getToken();
+
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate a network request or heavy query.
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // ✅ Ask storage permission (important for Android)
+      final hasPermission = await _requestStoragePermission();
+      if (!hasPermission) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Storage permission denied ❌")),
+        );
+        return;
+      }
 
-    // NOTE: Replace with your backend API call.
-    // Example: final response = await http.get(Uri.parse('your_backend_url/export?date=$_selectedDate'));
+      // Format date as yyyy-MM-dd
+      final String formattedDate = DateFormat(
+        'yyyy-MM-dd',
+      ).format(_selectedDate);
+      final String url =
+          "https://leave-backend-vbw6.onrender.com/api/export?date=$formattedDate";
 
-    setState(() {
-      _isLoading = false;
-    });
-    // Close the dialog after the operation is complete.
-    if (!mounted) return;
-    Navigator.of(context).pop();
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept":
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        String filePath;
+
+        if (Platform.isAndroid) {
+          // ✅ Custom directory: /storage/emulated/0/Flow Sphere/Employee Progress
+          final customDir = Directory(
+            "/storage/emulated/0/Flow Sphere/Employee Progress",
+          );
+
+          if (!customDir.existsSync()) {
+            customDir.createSync(recursive: true);
+          }
+
+          filePath = "${customDir.path}/progress_$formattedDate.xlsx";
+        } else {
+          // For other platforms (Desktop/Mac/iOS) fallback
+          final dir = Directory.systemTemp;
+          filePath = "${dir.path}/progress_$formattedDate.xlsx";
+        }
+
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("File saved to: $filePath"),
+            action: SnackBarAction(
+              label: "Open",
+              onPressed: () {
+                OpenFilex.open(filePath);
+              },
+            ),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      // debugPrint("Error $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("It seems your internet connection is slow")));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        Navigator.of(context).pop(); // close dialog after export
+      }
+    }
   }
 
   @override
@@ -94,7 +182,7 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Select a date to export your progress data as an Excel\nspreadsheet.',
+              'Select a date to export your progress data as an Excel spreadsheet.',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 24),
@@ -127,28 +215,6 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
                     const Icon(Icons.keyboard_arrow_down, size: 24),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFf0f4f9),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Export Preview:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Progress data for ${DateFormat('MMM dd, yyyy').format(_selectedDate)} will be exported as an Excel file containing tasks, progress percentages, and notes.',
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -190,9 +256,7 @@ class _ExportProgressDialogState extends State<ExportProgressDialog> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
                   ),
                 ],
