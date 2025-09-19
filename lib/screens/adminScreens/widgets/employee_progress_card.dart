@@ -32,13 +32,15 @@ class EmployeeProgress {
   factory EmployeeProgress.fromJson(Map<String, dynamic> json) {
     final user = json['user'] as Map<String, dynamic>;
     final tasksData = json['tasks'] as List<dynamic>? ?? [];
-    
+
     // Parse tasks
-    final tasks = tasksData.map((taskJson) => EmployeeTask.fromJson(taskJson)).toList();
-    
+    final tasks = tasksData
+        .map((taskJson) => EmployeeTask.fromJson(taskJson))
+        .toList();
+
     // Calculate completed tasks
     final completedTasks = tasks.where((task) => task.isCompleted).length;
-    
+
     // Generate initials from name
     final name = user['name'] ?? '';
     final initials = _generateInitials(name);
@@ -60,14 +62,14 @@ class EmployeeProgress {
 
   static String _generateInitials(String name) {
     if (name.isEmpty) return '??';
-    
+
     final words = name.split(' ').where((word) => word.isNotEmpty).toList();
     if (words.isEmpty) return '??';
-    
+
     if (words.length == 1) {
       return words[0].substring(0, words[0].length >= 2 ? 2 : 1).toUpperCase();
     }
-    
+
     // Take first letter of first two words
     return (words[0][0] + (words.length > 1 ? words[1][0] : '')).toUpperCase();
   }
@@ -236,7 +238,10 @@ class EmployeeProgressCard extends StatelessWidget {
     );
   }
 
-  void _showEmployeeDetailsDialog(BuildContext context, EmployeeProgress employee) {
+  void _showEmployeeDetailsDialog(
+    BuildContext context,
+    EmployeeProgress employee,
+  ) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -278,7 +283,7 @@ class EmployeeProgressCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Progress summary
               Container(
                 padding: const EdgeInsets.all(16),
@@ -294,7 +299,10 @@ class EmployeeProgressCard extends StatelessWidget {
                       children: [
                         const Text(
                           'Overall Progress',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF6b7280)),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6b7280),
+                          ),
                         ),
                         Text(
                           '${(employee.overallProgress * 100).toInt()}%',
@@ -310,7 +318,10 @@ class EmployeeProgressCard extends StatelessWidget {
                       children: [
                         const Text(
                           'Tasks Completed',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF6b7280)),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6b7280),
+                          ),
                         ),
                         Text(
                           '${employee.completedTasks}/${employee.totalTasks}',
@@ -324,17 +335,14 @@ class EmployeeProgressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Daily notes if available
               if (employee.dailyNotes.isNotEmpty) ...[
                 const Text(
                   'Daily Notes',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -349,17 +357,14 @@ class EmployeeProgressCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
               ],
-              
+
               // Tasks list
               const Text(
                 'Tasks',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              
+
               Expanded(
                 child: employee.tasks.isEmpty
                     ? const Center(
@@ -376,17 +381,17 @@ class EmployeeProgressCard extends StatelessWidget {
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: task.isCompleted 
-                                  ? Colors.green.shade50 
+                              color: task.isCompleted
+                                  ? Colors.green.shade50
                                   : Colors.orange.shade50,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: task.isCompleted 
-                                    ? Colors.green.shade200 
+                                color: task.isCompleted
+                                    ? Colors.green.shade200
                                     : Colors.orange.shade200,
                               ),
                             ),
-                            child: TaskItem(task: task),
+                            child: TaskItemFull(task: task),
                           );
                         },
                       ),
