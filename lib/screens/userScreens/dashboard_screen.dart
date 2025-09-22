@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flow_sphere/Services/Admin_services/login_api_services.dart';
 import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
@@ -8,6 +9,7 @@ import 'package:flow_sphere/screens/userScreens/widgets/build_action_card.dart';
 import 'package:flow_sphere/screens/userScreens/widgets/build_progress_card.dart';
 import 'package:flow_sphere/screens/userScreens/widgets/user_info_card.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:intl/intl.dart';
 
@@ -22,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? fullName;
   String token = '';
   bool _isUserLoading = true;
+  int progressPercent = 0;
 
   // State for time tracking
   bool _isCheckedIn = false;
@@ -33,7 +36,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    getUser();
     // Start a timer to update the current time every second
     _timer = Timer.periodic(const Duration(seconds: 45), (timer) {
       if (mounted) {
@@ -42,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     });
+    getUserInfo();
   }
 
   @override
@@ -75,7 +78,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } else {
       setState(() {
-        _isCheckedIn = true;
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(msg!)));
       });
     }
     setState(() {
@@ -117,7 +123,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 16),
                   // Today's Progress Card
-                  BuildProgressCard(context: context),
+                  BuildProgressCard(
+                    context: context,
+                    todayProgressPercent: progressPercent,
+                  ),
                   const SizedBox(height: 16),
                   // Requests & This Week Cards
                   BuildActionCard(context: context),
@@ -127,14 +136,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void getUser() async {
+  void getUserInfo() async {
     final authService = AuthService();
     final storedToken = await authService.getToken();
     token = storedToken!;
     final user = await authService.getStoredUser();
+    _isCheckedIn = await getCheckStatus(token: token);
+    progressPercent = await getTodayProgressStatus(token: token);
     setState(() {
       fullName = user!['name'].toString();
       _isUserLoading = false;
     });
+  }
+
+  Future<bool> getCheckStatus({required String token}) async {
+    final url = "https://leave-backend-vbw6.onrender.com/api/attendance/me";
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+    String todayDate = _currentTime.toString().split(' ')[0];
+    String userData = jsonDecode(response.body).toString();
+
+    if (userData.contains(todayDate)) {
+      Map<String, dynamic> todayData = jsonDecode(response.body)[0];
+      if (todayData['check_out_at'] == null) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  Future<int> getTodayProgressStatus({required String token}) async {
+    final url = "https://leave-backend-vbw6.onrender.com/api/me/today";
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+    Map<String, dynamic> userData = jsonDecode(response.body);
+    return userData['overallProgress'];
   }
 }

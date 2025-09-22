@@ -6,8 +6,21 @@ import 'package:flow_sphere/screens/adminScreens/employees_screen.dart';
 import 'package:flow_sphere/screens/adminScreens/register_employee.dart';
 import 'package:flutter/material.dart';
 
-class AdminNavigationDrawer extends StatelessWidget {
+class AdminNavigationDrawer extends StatefulWidget {
   const AdminNavigationDrawer({super.key});
+
+  @override
+  State<AdminNavigationDrawer> createState() => _AdminNavigationDrawerState();
+}
+
+class _AdminNavigationDrawerState extends State<AdminNavigationDrawer> {
+  String userName = '';
+  String userRole = '';
+  @override
+  void initState() {
+    super.initState();
+    getUser();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,16 +113,16 @@ class AdminNavigationDrawer extends StatelessWidget {
                 color: const Color(0xFF19304d),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const ListTile(
+              child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.teal,
                   child: Icon(Icons.person, color: Colors.white),
                 ),
                 title: Text(
-                  'Admin User',
+                  userName,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
-                subtitle: Text('ADMIN', style: TextStyle(color: Colors.grey)),
+                subtitle: Text(userRole, style: TextStyle(color: Colors.grey)),
               ),
             ),
 
@@ -176,5 +189,14 @@ class AdminNavigationDrawer extends StatelessWidget {
         }
       },
     );
+  }
+
+  void getUser() async {
+    final authService = AuthService();
+    final user = await authService.getStoredUser();
+    setState(() {
+      userName = user?['name'];
+      userRole = user?['role'];
+    });
   }
 }

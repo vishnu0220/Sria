@@ -1,3 +1,4 @@
+import 'package:flow_sphere/Services/Admin_services/login_api_services.dart';
 import 'package:flow_sphere/screens/userScreens/calender_screen.dart';
 import 'package:flow_sphere/screens/userScreens/dashboard_screen.dart';
 import 'package:flow_sphere/screens/userScreens/profile_screen.dart';
@@ -5,8 +6,21 @@ import 'package:flow_sphere/screens/userScreens/progress_screen.dart';
 import 'package:flow_sphere/screens/userScreens/requests_screen.dart';
 import 'package:flutter/material.dart';
 
-class CustomNavigationDrawer extends StatelessWidget {
+class CustomNavigationDrawer extends StatefulWidget {
   const CustomNavigationDrawer({super.key});
+
+  @override
+  State<CustomNavigationDrawer> createState() => _CustomNavigationDrawerState();
+}
+
+class _CustomNavigationDrawerState extends State<CustomNavigationDrawer> {
+  String userName = '';
+  String userRole = '';
+  @override
+  void initState() {
+    super.initState();
+    getUser();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,19 +106,16 @@ class CustomNavigationDrawer extends StatelessWidget {
                 color: const Color(0xFF19304d),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const ListTile(
+              child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.teal,
                   child: Icon(Icons.person, color: Colors.white),
                 ),
                 title: Text(
-                  'Chada Sitharam',
+                  userName,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
-                subtitle: Text(
-                  'EMPLOYEE',
-                  style: TextStyle(color: Colors.grey),
-                ),
+                subtitle: Text(userRole, style: TextStyle(color: Colors.grey)),
               ),
             ),
 
@@ -162,5 +173,14 @@ class CustomNavigationDrawer extends StatelessWidget {
         }
       },
     );
+  }
+
+  void getUser() async {
+    final authService = AuthService();
+    final user = await authService.getStoredUser();
+    setState(() {
+      userName = user?['name'];
+      userRole = user?['role'];
+    });
   }
 }
