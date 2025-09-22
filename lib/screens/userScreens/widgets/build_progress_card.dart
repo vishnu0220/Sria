@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
 class BuildProgressCard extends StatelessWidget {
-  const BuildProgressCard({super.key, required this.context});
+  final int todayProgressPercent;
+  const BuildProgressCard({
+    super.key,
+    required this.context,
+    required this.todayProgressPercent,
+  });
 
   final BuildContext context;
+
+  // final int progressPercent;
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +37,22 @@ class BuildProgressCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
-              '0%',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+            Center(
+              child: Text(
+                '$todayProgressPercent%',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Tasks Completed',
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+            Center(
+              child: const Text(
+                'Tasks Completed',
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
