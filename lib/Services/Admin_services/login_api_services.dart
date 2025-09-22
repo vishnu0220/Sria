@@ -64,6 +64,30 @@ class AuthService {
     await _storage.delete(key: 'user');
   }
 
+  Future<String?> getUserId() async {
+    try {
+      final user = await getStoredUser();
+      if (user != null) {
+        // Try different possible field names for user ID
+        String? userId = user['_id']?.toString() ?? 
+                        user['id']?.toString() ?? 
+                        user['userId']?.toString();
+        return userId;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user ID: $e');
+      return null;
+    }
+  }
+
+  // --- Check if user is authenticated ---
+  Future<bool> isAuthenticated() async {
+    final token = await getToken();
+    final user = await getStoredUser();
+    return token != null && user != null;
+  }
+
   // --- Simple protected GET helper ---
   // path must start with '/' e.g. '/api/profile'
   Future<Map<String, dynamic>> getProtected(String path) async {
