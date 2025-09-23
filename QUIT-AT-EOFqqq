@@ -1,0 +1,203 @@
+[33mcommit ad833f8697877d37c36ae5a2ad240351bde3934b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 8b1866a e365d7f
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Mon Sep 22 16:09:11 2025 +0530
+
+    Merge branch 'main' of https://github.com/vishnu0220/Sria
+
+[33mcommit 8b1866aa59eb7fb49799370eb39ecd88a3745f19[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Mon Sep 22 16:07:51 2025 +0530
+
+    completed api connection for progress screen
+
+[33mcommit e365d7f0e482c994f6a8396f5db186b14ed9dfd3[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Mon Sep 22 15:21:57 2025 +0530
+
+    Completed dashboard screen for the user
+
+[33mcommit 32ce97e40cd502c0c6673e13bf7dec8ac16e0ed6[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Fri Sep 19 23:31:19 2025 +0530
+
+    Integrated clock-in and clock-out API for the user dashboard screen
+
+[33mcommit 9a20b98adc6ab3ff0a4615ecbfdcaeb03ea0c645[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Fri Sep 19 16:20:57 2025 +0530
+
+    Added maxlines in task_item.dart file and created a new widget to display full task description for task
+
+[33mcommit 500406c089e3a8d8820297b1d238eb3e6afddc5c[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Fri Sep 19 15:02:12 2025 +0530
+
+    Added download progress excel feature in progress screen for admin user
+
+[33mcommit cd36571a336cfb6918f407a4690544cb9e67c09d[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Fri Sep 19 12:48:09 2025 +0530
+
+    addede collection dependence
+
+[33mcommit a46815cdf250b50bee848599aa7c8bed2d59cc89[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Fri Sep 19 12:43:06 2025 +0530
+
+    completed backend connection for progress screen for Admin
+
+[33mcommit 995f355fd6ab50c169cf3d7b5f1497edda6fffa5[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Thu Sep 18 19:37:11 2025 +0530
+
+    Added check your internet connection - If user didn't connected with internet while login
+
+[33mcommit f52e03bd1e3caa344cdd3845e69b242bf74d17bb[m
+Merge: 72a0255 a965240
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Thu Sep 18 19:04:44 2025 +0530
+
+    Merge branch 'main' of https://github.com/vishnu0220/Sria
+
+[33mcommit 72a02558c225e1c33d77c22e2b7a72d836124fc1[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Thu Sep 18 19:04:36 2025 +0530
+
+    Decision making functionality is given approval screen for the admin user
+
+[33mcommit d0edcf6e0eac893d99ee603cea042391683313db[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Thu Sep 18 18:02:35 2025 +0530
+
+    Added ui for checkout request as well
+
+[33mcommit a96524093a0ef50d73ad093a610687e2b68b4426[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Thu Sep 18 16:17:32 2025 +0530
+
+    completed api connection for register empolyee screen and solve rendering issue in emp progress screen
+
+[33mcommit 56309d9984d3f0eb33616ad5f5ef457262465c0a[m
+Merge: d9a74ff 0755eb8
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 17 18:20:52 2025 +0530
+
+    Resolved merge conflicts
+
+[33mcommit d9a74ff72e666a7236ff63ed0df24543846db741[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 17 18:05:38 2025 +0530
+
+    Apporval screen for admin will fetch data in real time
+
+[33mcommit 0755eb8ea3fb738d2372a35382901e93b2773090[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Wed Sep 17 17:40:02 2025 +0530
+
+    connected apis for admin employees attendence tracker
+
+[33mcommit 657e74ce376eed1878d9aa1061e5412a2064e905[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Tue Sep 16 18:36:35 2025 +0530
+
+    Added persistent login and splash screen
+
+[33mcommit f69b418a3aab72c91aceea2afecb29df8c278b91[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Tue Sep 16 15:52:21 2025 +0530
+
+    implemented password reset feature
+
+[33mcommit 89f4e72f666f59113e41c9bb9412a8e4d6682c97[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Fri Sep 12 12:04:43 2025 +0530
+
+    completed api integration for login
+
+[33mcommit 07164d16d77c20b12877ac290c1e423ffa6e7544[m
+Merge: 3efa43f 5d9b132
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Thu Sep 11 11:18:30 2025 +0530
+
+    Added Routes for both users and admin
+
+[33mcommit 3efa43f8722bd06f44186293a3a54f6ed12e5f41[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Thu Sep 11 10:32:04 2025 +0530
+
+    created Navigation Drawer
+
+[33mcommit 5d9b1326d57c9c2f821a2ed42674e4ec00cf7ca2[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 18:38:47 2025 +0530
+
+    Reduced code inside of Admin progress screen file with minimal lines
+
+[33mcommit eff3704f5b2b519fcd21c0efe52cfdc8758e09be[m
+Merge: df3b4b3 f1c3b82
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Wed Sep 10 16:09:18 2025 +0530
+
+    Merge branch 'main' of https://github.com/vishnu0220/Sria
+
+[33mcommit df3b4b3251799051c7a2e644b2ec81f1d159adb0[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Wed Sep 10 16:08:15 2025 +0530
+
+    completed register_employee screen for admin user
+
+[33mcommit f1c3b82908cc2f4fc53db556c05fe6f7a5a5b145[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 16:00:31 2025 +0530
+
+    Completed Approval Screen for admin user, extracted the nessasary widgets and placed them into widgets folder
+
+[33mcommit c8ff2c57c1568ab3aac7d6f444b5b70db42857b5[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 13:34:12 2025 +0530
+
+    Extracted EmployeeCard from employeescreen.dart file and placed it inside the widgets folder
+
+[33mcommit bb811ff697c5a358ad6717217a68971c4759bd66[m
+Merge: dfe2a6f 886a56a
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 13:18:47 2025 +0530
+
+    Merge branch 'main' of https://github.com/vishnu0220/Sria
+
+[33mcommit dfe2a6fcd32e13c81ab4f790c1bd3061cbec5547[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 13:16:54 2025 +0530
+
+    Designed employees screen for admin user
+
+[33mcommit 886a56a95936612fa1ce59e23e1e20ba0c41fe7b[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Wed Sep 10 12:36:20 2025 +0530
+
+    Completed Admin Dashboard Screen and Created Common Widget Folder
+
+[33mcommit e1ce0e58afe46820b177cfa1d613e7a02bdaa551[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 10:48:16 2025 +0530
+
+    Created Admin Dashboard file in Admin Screens folder
+
+[33mcommit d01facf7ae13516e7bea4f1cf4d4ce06373ed472[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Wed Sep 10 10:45:34 2025 +0530
+
+    Files moved to the respective folders
+
+[33mcommit 418bc46e4a68f84d08b2bfa49ad60519806de267[m
+Author: sitharam <chadasitharam@gmail.com>
+Date:   Tue Sep 9 18:15:26 2025 +0530
+
+    Removed comments in main.dart file
+
+[33mcommit e97ec6ae40e1cbdd9af1183c65f45bd9a55ff0fb[m
+Author: vishnuvardhan <vishnuvardhan2004.kollu@gmail.com>
+Date:   Tue Sep 9 18:01:27 2025 +0530
+
+    Worked on user screens of the app
