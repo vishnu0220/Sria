@@ -44,6 +44,11 @@ class AuthService {
         return {'success': false, 'message': message};
       }
     } catch (e) {
+      if (e.toString().contains('TimeoutException')) {
+        String message =
+            "We're having a temporary hiccup. \nPlease refresh or try again shortly!";
+        return {'success': false, 'message': message};
+      }
       return {'success': false, 'message': e.toString()};
     }
   }
@@ -69,9 +74,10 @@ class AuthService {
       final user = await getStoredUser();
       if (user != null) {
         // Try different possible field names for user ID
-        String? userId = user['_id']?.toString() ?? 
-                        user['id']?.toString() ?? 
-                        user['userId']?.toString();
+        String? userId =
+            user['_id']?.toString() ??
+            user['id']?.toString() ??
+            user['userId']?.toString();
         return userId;
       }
       return null;
@@ -96,10 +102,15 @@ class AuthService {
 
     final uri = Uri.parse('$baseUrl$path');
     try {
-      final res = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      }).timeout(const Duration(seconds: 15));
+      final res = await http
+          .get(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
       final body = res.body.isNotEmpty ? jsonDecode(res.body) : null;
       if (res.statusCode == 200) {
@@ -108,7 +119,11 @@ class AuthService {
         final message = (body is Map && body['message'] != null)
             ? body['message']
             : 'Request failed (status ${res.statusCode})';
-        return {'success': false, 'message': message, 'statusCode': res.statusCode};
+        return {
+          'success': false,
+          'message': message,
+          'statusCode': res.statusCode,
+        };
       }
     } catch (e) {
       return {'success': false, 'message': e.toString()};
@@ -116,17 +131,24 @@ class AuthService {
   }
 
   // --- Generic protected POST helper ---
-  Future<Map<String, dynamic>> postProtected(String path, Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> postProtected(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
     final token = await getToken();
     if (token == null) return {'success': false, 'message': 'No token stored'};
     final uri = Uri.parse('$baseUrl$path');
     try {
-      final res = await http.post(uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: jsonEncode(payload)).timeout(const Duration(seconds: 15));
+      final res = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 15));
 
       final body = res.body.isNotEmpty ? jsonDecode(res.body) : null;
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -135,7 +157,11 @@ class AuthService {
         final message = (body is Map && body['message'] != null)
             ? body['message']
             : 'Request failed (status ${res.statusCode})';
-        return {'success': false, 'message': message, 'statusCode': res.statusCode};
+        return {
+          'success': false,
+          'message': message,
+          'statusCode': res.statusCode,
+        };
       }
     } catch (e) {
       return {'success': false, 'message': e.toString()};

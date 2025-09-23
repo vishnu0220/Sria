@@ -1,6 +1,6 @@
 // password_reset_page.dart
 
-import 'package:flow_sphere/Services/Admin_services/forgotpassword_api_service.dart';
+import 'package:flow_sphere/Services/forgotpassword_api_service.dart';
 import 'package:flutter/material.dart';
 import 'verify_code_page.dart';
 

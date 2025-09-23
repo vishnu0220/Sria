@@ -1,4 +1,5 @@
 import 'package:flow_sphere/Services/User_services/progress_service.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
@@ -237,504 +238,490 @@ class _ProgressScreenState extends State<ProgressScreen> {
       'EEEE, MMMM d, yyyy',
     ).format(selectedDateTime);
 
-    if (_isLoading) {
-      return Scaffold(
-        appBar: CustomAppBar(),
-        drawer: CustomNavigationDrawer(),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(11),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress Tracker Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    Text.rich(
-                      (TextSpan(
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
+      body: _isLoading
+          ? ShimmerWidget()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(11),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Progress Tracker Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
                         children: [
-                          WidgetSpan(
-                            child: Icon(
-                              Icons.bar_chart_rounded,
-                              color: bootstrapPrimaryBlue,
-                            ),
+                          Text.rich(
+                            (TextSpan(
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              children: [
+                                WidgetSpan(
+                                  child: Icon(
+                                    Icons.bar_chart_rounded,
+                                    color: bootstrapPrimaryBlue,
+                                    // size: 32,
+                                  ),
+                                ),
+                                TextSpan(text: "Progress Tracker"),
+                              ],
+                            )),
                           ),
-                          TextSpan(text: "Progress Tracker"),
+
+                          const Text(
+                            "Track your daily tasks \nand productivity",
+                          ),
                         ],
-                      )),
-                    ),
+                      ),
 
-                    const Text("Track your daily tasks \nand productivity"),
-                  ],
-                ),
-
-                const SizedBox(width: 20),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    backgroundColor: bootstrapPrimaryBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _isSaving ? null : _saveProgress,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 40,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                      const SizedBox(width: 20),
+                      IconButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () => _selectDate(context),
+                        icon: Icon(
+                          Icons.calendar_month,
+                          size: 40,
+                          color: bootstrapPrimaryBlue,
+                        ),
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          backgroundColor: bootstrapPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
                           ),
-                        )
-                      : const Icon(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: _isSaving ? null : _saveProgress,
+                        icon: const Icon(
                           Icons.save_alt,
                           size: 18,
                           color: Colors.white,
                         ),
-                  label: Text(_isSaving ? "Saving..." : "Save Progress"),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    backgroundColor: bootstrapPrimaryBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
+                        label: Text(
+                          _isSaving ? "Saving.." : " Save   ",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Today's Progress Card
+                  Card(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  onPressed: () => _selectDate(context),
-                  icon: const Icon(
-                    Icons.calendar_today,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    DateFormat('MMM dd').format(selectedDateTime),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Today's Progress Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Today's Progress",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Today's Progress",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(displayDate),
+                          const SizedBox(height: 12),
+                          Text(
+                            "$_overallProgress%   $_completedTasks of ${_tasks.length} tasks completed",
+                          ),
+                          const SizedBox(height: 8),
+                          LinearProgressIndicator(
+                            value: _overallProgress / 100,
+                            minHeight: 8,
+                            borderRadius: BorderRadius.circular(6),
+                            color: bootstrapPrimaryBlue,
+                            backgroundColor: Colors.grey[300],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(displayDate),
-                    const SizedBox(height: 12),
-                    Text(
-                      "$_overallProgress%   $_completedTasks of ${_tasks.length} tasks completed",
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: _overallProgress / 100,
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(6),
-                      color: bootstrapPrimaryBlue,
-                      backgroundColor: Colors.grey[300],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
 
-            const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-            // Add New Task Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Add New Task",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  // Add New Task Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Add New Task",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text("What are you working on today?"),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _taskController,
+                                  decoration: InputDecoration(
+                                    hintText: "Describe your task...",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              CircleAvatar(
+                                backgroundColor: _isTaskNotEmpty
+                                    ? bootstrapPrimaryBlue
+                                    : Colors.grey,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: _isTaskNotEmpty ? _addTask : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text("What are you working on today?"),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _taskController,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Today's Tasks Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Today's Tasks",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text("Track your progress throughout the day"),
+                          const SizedBox(height: 16),
+                          if (_tasks.isEmpty)
+                            const Center(
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    "No tasks for today. Add your first task above!",
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _tasks.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 20),
+                              itemBuilder: (context, index) {
+                                final task = _tasks[index];
+                                return Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              task.description,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                              size: 20,
+                                            ),
+                                            onPressed: () => _deleteTask(index),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: LinearProgressIndicator(
+                                              value: task.progress / 100,
+                                              backgroundColor: Colors.grey[300],
+                                              color: bootstrapPrimaryBlue,
+                                              minHeight: 6,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            '${task.progress}%',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  minimumSize: const Size(
+                                                    40,
+                                                    32,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                      ),
+                                                ),
+                                                onPressed: task.progress > 0
+                                                    ? () => _updateTaskProgress(
+                                                        index,
+                                                        (task.progress - 10)
+                                                            .clamp(0, 100),
+                                                      )
+                                                    : null,
+                                                child: const Icon(
+                                                  Icons.remove,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  minimumSize: const Size(
+                                                    40,
+                                                    32,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                      ),
+                                                  backgroundColor:
+                                                      bootstrapPrimaryBlue,
+                                                  foregroundColor: Colors.white,
+                                                ),
+                                                onPressed: task.progress < 100
+                                                    ? () => _updateTaskProgress(
+                                                        index,
+                                                        (task.progress + 10)
+                                                            .clamp(0, 100),
+                                                      )
+                                                    : null,
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: task.status == 'completed'
+                                                  ? Colors.green
+                                                  : (task.status ==
+                                                            'in-progress' ||
+                                                        task.status ==
+                                                            'in-progress')
+                                                  ? Colors.orange
+                                                  : Colors.grey,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              task.status == 'in-progress'
+                                                  ? 'IN PROGRESS'
+                                                  : task.status.toUpperCase(),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Daily Notes Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Daily Notes",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            "Note down thoughts, bloggers, or achievements",
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _notesController,
+                            maxLines: 5,
                             decoration: InputDecoration(
-                              hintText: "Describe your task...",
+                              hintText: "Write your notes here...",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Quick Stats Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Quick Stats",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Total Tasks"),
+                              Text("${_tasks.length}"),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Completed"),
+                              Text(
+                                "$_completedTasks",
+                                style: const TextStyle(color: Colors.green),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        CircleAvatar(
-                          backgroundColor: _isTaskNotEmpty
-                              ? bootstrapPrimaryBlue
-                              : Colors.grey,
-                          child: IconButton(
-                            icon: const Icon(Icons.add, color: Colors.white),
-                            onPressed: _isTaskNotEmpty ? _addTask : null,
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("In Progress"),
+                              Text(
+                                "$_inProgressTasks",
+                                style: const TextStyle(color: Colors.orange),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Pending"),
+                              Text(
+                                "$_pendingTasks",
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Today's Tasks Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Today's Tasks",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text("Track your progress throughout the day"),
-                    const SizedBox(height: 16),
-                    if (_tasks.isEmpty)
-                      const Center(
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 40,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "No tasks for today. Add your first task above!",
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _tasks.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 20),
-                        itemBuilder: (context, index) {
-                          final task = _tasks[index];
-                          return Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        task.description,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                        size: 20,
-                                      ),
-                                      onPressed: () => _deleteTask(index),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: LinearProgressIndicator(
-                                        value: task.progress / 100,
-                                        backgroundColor: Colors.grey[300],
-                                        color: bootstrapPrimaryBlue,
-                                        minHeight: 6,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      '${task.progress}%',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            minimumSize: const Size(40, 32),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
-                                          ),
-                                          onPressed: task.progress > 0
-                                              ? () => _updateTaskProgress(
-                                                  index,
-                                                  (task.progress - 10).clamp(
-                                                    0,
-                                                    100,
-                                                  ),
-                                                )
-                                              : null,
-                                          child: const Icon(
-                                            Icons.remove,
-                                            size: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            minimumSize: const Size(40, 32),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
-                                            backgroundColor:
-                                                bootstrapPrimaryBlue,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          onPressed: task.progress < 100
-                                              ? () => _updateTaskProgress(
-                                                  index,
-                                                  (task.progress + 10).clamp(
-                                                    0,
-                                                    100,
-                                                  ),
-                                                )
-                                              : null,
-                                          child: const Icon(
-                                            Icons.add,
-                                            size: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: task.status == 'completed'
-                                            ? Colors.green
-                                            : (task.status == 'in-progress' ||
-                                                  task.status == 'in-progress')
-                                            ? Colors.orange
-                                            : Colors.grey,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        task.status == 'in-progress'
-                                            ? 'IN PROGRESS'
-                                            : task.status.toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Daily Notes Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Daily Notes",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text("Note down thoughts, bloggers, or achievements"),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _notesController,
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        hintText: "Write your notes here...",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Quick Stats Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Quick Stats",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Total Tasks"),
-                        Text("${_tasks.length}"),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Completed"),
-                        Text(
-                          "$_completedTasks",
-                          style: const TextStyle(color: Colors.green),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("In Progress"),
-                        Text(
-                          "$_inProgressTasks",
-                          style: const TextStyle(color: Colors.orange),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Pending"),
-                        Text(
-                          "$_pendingTasks",
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

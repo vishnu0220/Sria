@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flow_sphere/Services/Admin_services/login_api_services.dart';
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
@@ -70,18 +70,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } else if (msg != null && msg.contains('success')) {
+    } else if (msg != null && msg.contains('Checked in successfully')) {
       setState(() {
         _isCheckedIn = !_isCheckedIn;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Your scheduled work period for today has started'),
+        ),
+      );
+    } else if (msg != null && msg.contains('Checked out successfully')) {
+      setState(() {
+        _isCheckedIn = !_isCheckedIn;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('The completion of your shift has been recorded'),
+        ),
+      );
     } else {
       setState(() {
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg!)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Your shift is completed for today')),
+        );
       });
     }
     setState(() {
@@ -151,6 +165,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<bool> getCheckStatus({required String token}) async {
     final url = "https://leave-backend-vbw6.onrender.com/api/attendance/me";
+    // try {
+    //   await http.get(
+    //     Uri.parse(url),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       "Authorization": "Bearer $token",
+    //     },
+    //   );
+    // } catch (e) {
+    //   debugPrint('Internet Error aagya bhai : $e');
+    // }
     final response = await http.get(
       Uri.parse(url),
       headers: {

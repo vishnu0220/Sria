@@ -9,6 +9,7 @@ class ClockinClockoutService {
     final url = isCheckedIn
         ? "https://leave-backend-vbw6.onrender.com/api/attendance/check-out"
         : "https://leave-backend-vbw6.onrender.com/api/attendance/check-in";
+
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -17,8 +18,33 @@ class ClockinClockoutService {
           "Authorization": "Bearer $token",
         },
       );
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body)['message'];
+        final responseData = jsonDecode(response.body);
+
+        // Extract attendanceId (_id) from response
+        final attendanceId = responseData["_id"];
+
+        // Log activity to /api/log
+        final action = isCheckedIn ? "CHECK_OUT" : "CHECK_IN";
+        final description = isCheckedIn
+            ? "User checked out"
+            : "User checked in";
+
+        await http.post(
+          Uri.parse("https://leave-backend-vbw6.onrender.com/api/log"),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+          body: jsonEncode({
+            "action": action,
+            "description": description,
+            "metadata": {"attendanceId": attendanceId},
+          }),
+        );
+
+        return responseData['message'];
       } else {
         return jsonDecode(response.body)['message'] ??
             "Failed with status: ${response.statusCode}";
