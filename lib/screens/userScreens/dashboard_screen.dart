@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String token = '';
   bool _isUserLoading = true;
   int progressPercent = 0;
+  bool internetIssue = false;
 
   // State for time tracking
   bool _isCheckedIn = false;
@@ -112,7 +114,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
       backgroundColor: Colors.grey[100],
-      body: _isUserLoading
+      body: internetIssue
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/choose-your-colors.json',
+                    repeat: true,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "No Internet Connection",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        internetIssue = false; // reset issue
+                        _isUserLoading = true; // show shimmer again
+                      });
+                      getUserInfo(); // retry fetching
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _isUserLoading
           ? ShimmerWidget()
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -165,17 +206,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<bool> getCheckStatus({required String token}) async {
     final url = "https://leave-backend-vbw6.onrender.com/api/attendance/me";
-    // try {
-    //   await http.get(
-    //     Uri.parse(url),
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       "Authorization": "Bearer $token",
-    //     },
-    //   );
-    // } catch (e) {
-    //   debugPrint('Internet Error aagya bhai : $e');
-    // }
+    try {
+      await http.get(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+    } catch (e) {
+      if (e.toString().contains("Failed host lookup")) {
+        setState(() {
+          internetIssue = true;
+        });
+      }
+      // debugPrint('Internet Error aagya bhai : $e');
+    }
     final response = await http.get(
       Uri.parse(url),
       headers: {

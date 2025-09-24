@@ -4,6 +4,7 @@ import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -18,6 +19,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
   bool _isTaskNotEmpty = false;
   bool _isLoading = false;
   bool _isSaving = false;
+
+  bool internetIssue = false;
 
   // Progress data
   List<TaskItem> _tasks = [];
@@ -59,6 +62,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       _showErrorMessage('Failed to initialize: $e');
       setState(() {
         _isLoading = false;
+        internetIssue = true;
       });
     }
   }
@@ -90,6 +94,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
     } catch (e) {
       // If no data exists for the selected date, start with empty data
       setState(() {
+        // Internet issues
+        _isLoading = false;
+        internetIssue = true;
+
         _tasks = [];
         _dailyNotes = '';
         _notesController.text = '';
@@ -241,7 +249,47 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
-      body: _isLoading
+      body: internetIssue
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/choose-your-colors.json',
+                    repeat: true,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "No Internet Connection",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        internetIssue = false; // reset issue
+                        _isLoading = true; // show shimmer again
+                      });
+                      // getUserInfo(); // retry fetching
+                      _initializeUserAndFetchProgress();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _isLoading
           ? ShimmerWidget()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(11),
