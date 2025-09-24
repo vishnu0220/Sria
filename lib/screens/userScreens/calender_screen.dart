@@ -6,6 +6,7 @@ import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 // Class to hold combined attendance and leave data for a single day
@@ -42,6 +43,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? _selectedDay;
   // A boolean to track the loading state
   bool _isLoading = true;
+  bool internetIssue = false;
 
   // State variables for dynamic counts
   int _presentCount = 0;
@@ -79,6 +81,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _fetchCombinedData() async {
     setState(() {
       _isLoading = true;
+      internetIssue = false;
     });
     try {
       // Fetch attendance data
@@ -92,6 +95,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         },
       );
 
+      if (attendanceResponse.toString().contains('Failed host lookup')) {
+        setState(() {
+          _isLoading = true;
+          internetIssue = true;
+        });
+        return;
+      }
       final leaveResponse = await http.get(
         Uri.parse('https://leave-backend-vbw6.onrender.com/api/requests/me'),
         headers: {
@@ -99,6 +109,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           "Authorization": "Bearer $token",
         },
       );
+      if (leaveResponse.toString().contains('Failed host lookup')) {
+        setState(() {
+          _isLoading = true;
+          internetIssue = true;
+        });
+        return;
+      }
 
       if (attendanceResponse.statusCode == 200 &&
           leaveResponse.statusCode == 200) {
@@ -202,6 +219,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
       }
     } catch (e) {
+      setState(() {
+        _isLoading = true;
+        internetIssue = true;
+      });
       print('An error occurred: $e');
       if (mounted) {
         setState(() {
@@ -362,7 +383,46 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
-      body: _isLoading
+      body: internetIssue
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/choose-your-colors.json',
+                    repeat: true,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "No Internet Connection",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        internetIssue = false; // reset issue
+                        _isLoading = true; // show shimmer again
+                      });
+                      _fetchCombinedData(); // retry fetching
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _isLoading
           ? ShimmerWidget()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),

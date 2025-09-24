@@ -1,8 +1,10 @@
 import 'package:flow_sphere/Services/User_services/profile_service.dart';
 import 'package:flow_sphere/Services/login_api_services.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -36,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // State variables for profile view
   bool _isEditing = false;
   bool _isLoading = true;
+  bool internetIssue = false;
   bool _isUpdatingPassword = false;
   String? _profileImageUrl;
 
@@ -75,6 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       setState(() {
         _isLoading = true;
+        internetIssue = false;
       });
 
       // Get the stored user data first
@@ -92,7 +96,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Fetch fresh data from API
       final result = await _profileService.getEmployeeProfile(employeeId);
-      
+      if (result.toString().contains('Failed host lookup')) {
+        setState(() {
+          internetIssue = true; // reset issue
+          _isLoading = false;
+        });
+        return;
+      }
       if (result['success']) {
         final data = result['data'];
         setState(() {
@@ -103,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _role = data['role'] ?? '';
           _status = data['status'] ?? '';
           _joiningDate = _formatDate(data['createdAt']);
-          
+
           // Update text controllers
           _fullNameController.text = _fullName;
           _emailController.text = _email;
@@ -126,8 +136,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final date = DateTime.parse(dateString);
       final months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
       ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     } catch (e) {
@@ -210,7 +230,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Update password
   Future<void> _updatePassword() async {
-    if (!(_isAtLeast6Chars && _passwordsMatch && _isDifferentFromCurrent && _isCurrentPasswordFilled)) {
+    if (!(_isAtLeast6Chars &&
+        _passwordsMatch &&
+        _isDifferentFromCurrent &&
+        _isCurrentPasswordFilled)) {
       return;
     }
 
@@ -250,8 +273,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     setState(() {
       _isAtLeast6Chars = newPassword.length >= 6;
-      _passwordsMatch = newPassword == confirmPassword && newPassword.isNotEmpty;
-      _isDifferentFromCurrent = newPassword != currentPassword && newPassword.isNotEmpty;
+      _passwordsMatch =
+          newPassword == confirmPassword && newPassword.isNotEmpty;
+      _isDifferentFromCurrent =
+          newPassword != currentPassword && newPassword.isNotEmpty;
       _isCurrentPasswordFilled = currentPassword.isNotEmpty;
     });
   }
@@ -261,8 +286,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+      body: internetIssue
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/lottie/choose-your-colors.json',
+                    repeat: true,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "No Internet Connection",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        internetIssue = false; // reset issue
+                        _isLoading = true; // show shimmer again
+                      });
+                      _loadProfileData(); // retry fetching
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _isLoading
+          ? ShimmerWidget()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -389,7 +453,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       Text(
                         _role.toUpperCase(),
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Container(
@@ -504,11 +571,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: _isUpdatingPassword
                     ? null
                     : (_isAtLeast6Chars &&
-                            _passwordsMatch &&
-                            _isDifferentFromCurrent &&
-                            _isCurrentPasswordFilled)
-                        ? _updatePassword
-                        : null,
+                          _passwordsMatch &&
+                          _isDifferentFromCurrent &&
+                          _isCurrentPasswordFilled)
+                    ? _updatePassword
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
