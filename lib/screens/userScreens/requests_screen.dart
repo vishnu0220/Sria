@@ -55,9 +55,7 @@ class _RequestsScreenState extends State<RequestsScreen>
       List<UserRequest> requests = [];
       try {
         requests = await RequestService.fetchUserRequests();
-        print(
-          "Successfully fetched ${requests.length} user requests",
-        ); // Debug log
+        // print("Successfully fetched ${requests.length} user requests");
       } catch (e) {
         setState(() {
           internetIssue = true;
@@ -771,7 +769,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         reason: leaveReason,
       );
 
-      print("Leave request submission result: $result"); // Debug log
+      // print("Leave request submission result: $result");
 
       if (result['success'] == true) {
         if (!mounted) return;
@@ -793,17 +791,16 @@ class _RequestsScreenState extends State<RequestsScreen>
         // Reload requests to show the new one
         _loadData();
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${result['message'] ?? 'Failed to submit request'}',
-            ),
-          ),
-        );
+        if (result.toString().contains('Failed host lookup')) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Connect to internet and try again')),
+          );
+        }
       }
     } catch (e) {
-      print("Exception in _submitLeaveRequest: $e"); // Debug log
+      // print("Exception in _submitLeaveRequest: $e"); //
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -851,16 +848,15 @@ class _RequestsScreenState extends State<RequestsScreen>
         // Reload requests to show the new one
         _loadData();
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${result['message'] ?? 'Failed to submit request'}',
-            ),
-          ),
-        );
+        if (result.toString().contains('Failed host lookup')) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Connect to internet and try again')),
+          );
+        }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -887,7 +883,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         reason: clockoutReason,
       );
 
-      print("Clockout request submission result: $result"); // Debug log
+      // print("Clockout request submission result: $result"); // Debug log
 
       if (result['success'] == true) {
         if (!mounted) return;
@@ -906,17 +902,16 @@ class _RequestsScreenState extends State<RequestsScreen>
         });
         _loadData(); // Reload to update missed checkouts and requests
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${result['message'] ?? 'Failed to submit request'}',
-            ),
-          ),
-        );
+        if (result.toString().contains('Failed host lookup')) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Connect to internet and try again')),
+          );
+        }
       }
     } catch (e) {
       print("Exception in _submitClockoutRequest: $e"); // Debug log
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
