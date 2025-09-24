@@ -1,8 +1,9 @@
 import 'package:flow_sphere/Services/User_services/request_service.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
-// import 'package:flow_sphere/services/request_service.dart'; // Import your request service
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class RequestsScreen extends StatefulWidget {
   const RequestsScreen({super.key});
@@ -36,6 +37,9 @@ class _RequestsScreenState extends State<RequestsScreen>
   List<MissedCheckout> missedCheckouts = [];
   bool isLoading = false;
 
+  // ShimmerWidget will be replacing the circular progress indicator
+  bool internetIssue = false;
+
   final List<String> leaveTypes = ["CASUAL", "SICK", "EARNED", "WFH"];
 
   @override
@@ -55,7 +59,11 @@ class _RequestsScreenState extends State<RequestsScreen>
           "Successfully fetched ${requests.length} user requests",
         ); // Debug log
       } catch (e) {
-        print("Error fetching user requests: $e");
+        setState(() {
+          internetIssue = true;
+          isLoading = true;
+        });
+        // print("Error fetching user requests: $e");
         // Don't throw here, just continue with empty list
       }
 
@@ -77,6 +85,7 @@ class _RequestsScreenState extends State<RequestsScreen>
       });
     } catch (e) {
       print("General error in _loadData: $e"); // Debug log
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error loading some data: $e')));
@@ -235,7 +244,7 @@ class _RequestsScreenState extends State<RequestsScreen>
 
         // Leave Type Dropdown
         DropdownButtonFormField<String>(
-          value: leaveType,
+          initialValue: leaveType,
           items: leaveTypes
               .map((e) => DropdownMenuItem(value: e, child: Text(e)))
               .toList(),
@@ -353,7 +362,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         const SizedBox(height: 12),
 
         if (isLoading)
-          const Center(child: CircularProgressIndicator())
+          ShimmerWidget()
         else if (missedCheckouts.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
@@ -373,54 +382,6 @@ class _RequestsScreenState extends State<RequestsScreen>
           ...missedCheckouts.map((missed) => _buildMissedCheckoutCard(missed)),
 
         const SizedBox(height: 20),
-
-        // Manual date selection if no missed checkouts or user wants to select different date
-        const Text(
-          "Or select a date manually:",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
-
-        // Date selection for clockout request
-        GestureDetector(
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: selectedMissedCheckoutDate ?? DateTime.now(),
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now(),
-            );
-            if (picked != null) {
-              setState(() {
-                selectedMissedCheckoutDate = picked;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  selectedMissedCheckoutDate != null
-                      ? _formatDate(selectedMissedCheckoutDate!)
-                      : "Select date for missed checkout",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: selectedMissedCheckoutDate != null
-                        ? Colors.black
-                        : Colors.grey[600],
-                  ),
-                ),
-                const Icon(Icons.calendar_today, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
 
         if (selectedMissedCheckoutDate != null) ...[
           const SizedBox(height: 16),
@@ -453,14 +414,7 @@ class _RequestsScreenState extends State<RequestsScreen>
               ),
               onPressed: isLoading ? null : _submitClockoutRequest,
               icon: isLoading
-                  ? const SizedBox(
-                      width: 15,
-                      height: 15,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
+                  ? ShimmerWidget()
                   : Image.asset(
                       'assets/images/send.png',
                       width: 15,
@@ -621,8 +575,48 @@ class _RequestsScreenState extends State<RequestsScreen>
 
         // Requests list
         Expanded(
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
+          child: internetIssue
+              ? Center(
+                  child: Column(
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Lottie.asset(
+                        'assets/lottie/choose-your-colors.json',
+                        repeat: true,
+                        width: 250,
+                        height: 250,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "No Internet Connection",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            internetIssue = false; // reset issue
+                            isLoading = true; // show shimmer again
+                          });
+                          // getUserInfo(); // retry fetching
+                          _loadData();
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text("Try Again"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : isLoading
+              ? ShimmerWidget()
               : userRequests.isEmpty
               ? const Center(
                   child: Padding(
@@ -658,7 +652,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha(25),
             spreadRadius: 0,
             blurRadius: 10,
             offset: const Offset(0, 2),
@@ -780,6 +774,7 @@ class _RequestsScreenState extends State<RequestsScreen>
       print("Leave request submission result: $result"); // Debug log
 
       if (result['success'] == true) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -798,6 +793,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         // Reload requests to show the new one
         _loadData();
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -837,6 +833,7 @@ class _RequestsScreenState extends State<RequestsScreen>
       );
 
       if (result['success'] == true) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -854,6 +851,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         // Reload requests to show the new one
         _loadData();
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -892,6 +890,7 @@ class _RequestsScreenState extends State<RequestsScreen>
       print("Clockout request submission result: $result"); // Debug log
 
       if (result['success'] == true) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -907,6 +906,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         });
         _loadData(); // Reload to update missed checkouts and requests
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -1005,6 +1005,7 @@ class _RequestsScreenState extends State<RequestsScreen>
           // Header section
           Container(
             color: Colors.white,
+            width: double.infinity,
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

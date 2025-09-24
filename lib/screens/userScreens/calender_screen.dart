@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flow_sphere/Services/login_api_services.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
@@ -362,7 +363,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? ShimmerWidget()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
