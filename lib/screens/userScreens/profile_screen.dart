@@ -1,3 +1,5 @@
+import 'package:flow_sphere/Services/User_services/profile_service.dart';
+import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flow_sphere/screens/userScreens/navigation_drawer.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +12,17 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Dummy data for the user profile
-  final _fullName = 'Vignesh Kumar Saka';
-  final _email = 'vignesh@sriainfotech.com';
-  final _joiningDate = 'August 18, 2025';
-  final _currentPassword =
-      'password123'; // Placeholder for the current password
+  final AuthService _authService = AuthService();
+  final ProfileService _profileService = ProfileService();
+
+  // Profile data
+  String _fullName = '';
+  String _email = '';
+  String _department = '';
+  String _role = '';
+  String _status = '';
+  String _joiningDate = '';
+  String _employeeId = '';
 
   // Text controllers for password fields
   final _currentPasswordController = TextEditingController();
@@ -28,6 +35,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // State variables for profile view
   bool _isEditing = false;
+  bool _isLoading = true;
+  bool _isUpdatingPassword = false;
   String? _profileImageUrl;
 
   // State variables for password visibility
@@ -44,8 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _fullNameController.text = _fullName;
-    _emailController.text = _email;
+    _loadProfileData();
     // Add listeners to the password fields for real-time validation
     _currentPasswordController.addListener(_validatePasswords);
     _newPasswordController.addListener(_validatePasswords);
@@ -62,6 +70,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  // Load profile data from API
+  Future<void> _loadProfileData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Get the stored user data first
+      final storedUser = await _authService.getStoredUser();
+      if (storedUser == null) {
+        _showErrorSnackBar('No user data found. Please login again.');
+        return;
+      }
+
+      final employeeId = storedUser['_id'] ?? storedUser['id'];
+      if (employeeId == null) {
+        _showErrorSnackBar('Employee ID not found. Please login again.');
+        return;
+      }
+
+      // Fetch fresh data from API
+      final result = await _profileService.getEmployeeProfile(employeeId);
+      
+      if (result['success']) {
+        final data = result['data'];
+        setState(() {
+          _employeeId = employeeId;
+          _fullName = data['name'] ?? '';
+          _email = data['email'] ?? '';
+          _department = data['department'] ?? '';
+          _role = data['role'] ?? '';
+          _status = data['status'] ?? '';
+          _joiningDate = _formatDate(data['createdAt']);
+          
+          // Update text controllers
+          _fullNameController.text = _fullName;
+          _emailController.text = _email;
+        });
+      } else {
+        _showErrorSnackBar(result['message'] ?? 'Failed to load profile data');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error loading profile: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Format date string
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '';
+    try {
+      final date = DateTime.parse(dateString);
+      final months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  // Show error snackbar
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        // backgroundColor: Colors.red,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  // Show success snackbar
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        // backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   // A function to handle the simulated image selection
   void _pickImage() {
     // In a real application, you would use a package like 'image_picker'
@@ -70,9 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _profileImageUrl = 'https://placehold.co/100x100';
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Image selected successfully!')),
-    );
+    _showSuccessSnackBar('Image selected successfully!');
   }
 
   // A function to handle save and cancel logic
@@ -80,23 +173,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _isEditing = !_isEditing;
       if (!_isEditing) {
-        // Here you would save the data to a database
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile saved successfully!')),
-        );
+        // Save the profile changes
+        _saveProfileChanges();
       }
     });
+  }
+
+  // Save profile changes
+  Future<void> _saveProfileChanges() async {
+    try {
+      final profileData = {
+        'name': _fullNameController.text.trim(),
+        'email': _emailController.text.trim(),
+      };
+
+      final result = await _profileService.updateEmployeeProfile(
+        employeeId: _employeeId,
+        profileData: profileData,
+      );
+
+      if (result['success']) {
+        setState(() {
+          _fullName = _fullNameController.text.trim();
+          _email = _emailController.text.trim();
+        });
+        _showSuccessSnackBar('Profile saved successfully!');
+      } else {
+        _showErrorSnackBar(result['message'] ?? 'Failed to save profile');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error saving profile: $e');
+    }
+  }
+
+  // Update password
+  Future<void> _updatePassword() async {
+    if (!(_isAtLeast6Chars && _passwordsMatch && _isDifferentFromCurrent && _isCurrentPasswordFilled)) {
+      return;
+    }
+
+    setState(() {
+      _isUpdatingPassword = true;
+    });
+
+    try {
+      final result = await _profileService.resetPassword(
+        email: _email,
+        oldPassword: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+      );
+
+      if (result['success']) {
+        _showSuccessSnackBar('Password updated successfully!');
+        // Clear password fields
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmNewPasswordController.clear();
+      } else {
+        _showErrorSnackBar(result['message'] ?? 'Failed to update password');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error updating password: $e');
+    } finally {
+      setState(() {
+        _isUpdatingPassword = false;
+      });
+    }
   }
 
   void _validatePasswords() {
     final newPassword = _newPasswordController.text;
     final confirmPassword = _confirmNewPasswordController.text;
+    final currentPassword = _currentPasswordController.text;
 
     setState(() {
       _isAtLeast6Chars = newPassword.length >= 6;
-      _passwordsMatch = newPassword == confirmPassword;
-      _isDifferentFromCurrent = newPassword != _currentPassword;
-      _isCurrentPasswordFilled = _currentPasswordController.text.isNotEmpty;
+      _passwordsMatch = newPassword == confirmPassword && newPassword.isNotEmpty;
+      _isDifferentFromCurrent = newPassword != currentPassword && newPassword.isNotEmpty;
+      _isCurrentPasswordFilled = currentPassword.isNotEmpty;
     });
   }
 
@@ -105,22 +259,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomNavigationDrawer(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header Section
-            _buildProfileHeader(),
-            const SizedBox(height: 16),
-            // Personal Information Card
-            _buildPersonalInformationCard(),
-            const SizedBox(height: 16),
-            // Change Password Card
-            _buildChangePasswordCard(),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile Header Section
+                  _buildProfileHeader(),
+                  const SizedBox(height: 16),
+                  // Personal Information Card
+                  _buildPersonalInformationCard(),
+                  const SizedBox(height: 16),
+                  // Change Password Card
+                  _buildChangePasswordCard(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -134,7 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 4),
         const Text(
-          'Manage your personal information and view your leave statistics',
+          'Manage your personal information and view your details',
           style: TextStyle(color: Colors.grey, fontSize: 14),
         ),
         const SizedBox(height: 16),
@@ -218,40 +374,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _fullName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'EMPLOYEE',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withAlpha(51),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'Development',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _fullName,
+                        style: const TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        _role.toUpperCase(),
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withAlpha(51),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _department,
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -262,6 +420,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _isEditing
                 ? _buildEditableField('Email', _emailController)
                 : _buildInfoRow('Email', _email, Icons.email),
+            _buildInfoRow('Department', _department, Icons.business),
+            _buildInfoRow('Role', _role, Icons.badge),
+            _buildInfoRow('Status', _status, Icons.info),
             _buildInfoRow('Joining Date', _joiningDate, Icons.calendar_today),
           ],
         ),
@@ -302,7 +463,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 setState(() {
                   _showCurrentPassword = show;
                 });
-                _validatePasswords();
               },
             ),
             const SizedBox(height: 16),
@@ -339,20 +499,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed:
-                    (_isAtLeast6Chars &&
-                        _passwordsMatch &&
-                        _isDifferentFromCurrent &&
-                        _isCurrentPasswordFilled)
-                    ? () {
-                        // Implement logic to update the password
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Password updated successfully!'),
-                          ),
-                        );
-                      }
-                    : null,
+                onPressed: _isUpdatingPassword
+                    ? null
+                    : (_isAtLeast6Chars &&
+                            _passwordsMatch &&
+                            _isDifferentFromCurrent &&
+                            _isCurrentPasswordFilled)
+                        ? _updatePassword
+                        : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
@@ -361,7 +515,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Update Password'),
+                child: _isUpdatingPassword
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Update Password'),
               ),
             ),
           ],
@@ -397,7 +560,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    value,
+                    value.isNotEmpty ? value : 'Not specified',
                     style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                   ),
                 ),
@@ -519,6 +682,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _getInitials(String name) {
+    if (name.isEmpty) return '';
     final parts = name.split(' ');
     if (parts.length >= 2) {
       return parts[0].substring(0, 1).toUpperCase() +
