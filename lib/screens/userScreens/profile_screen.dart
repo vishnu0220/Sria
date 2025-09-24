@@ -158,6 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // A function to handle the simulated image selection
+  // ignore: unused_element
   void _pickImage() {
     // In a real application, you would use a package like 'image_picker'
     // to open the device's gallery or camera.
@@ -174,12 +175,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isEditing = !_isEditing;
       if (!_isEditing) {
         // Save the profile changes
-        _saveProfileChanges();
+        // _saveProfileChanges();
       }
     });
   }
 
   // Save profile changes
+  // ignore: unused_element
   Future<void> _saveProfileChanges() async {
     try {
       final profileData = {
@@ -356,7 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         bottom: 0,
                         right: 0,
                         child: InkWell(
-                          onTap: _pickImage,
+                          // onTap: _pickImage,
                           child: Container(
                             decoration: const BoxDecoration(
                               color: Colors.black54,
@@ -665,14 +667,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(
             isValid ? Icons.check_circle : Icons.circle_outlined,
-            color: isValid ? Colors.green : Colors.grey,
+            // color: isValid ? Colors.green : Colors.grey,
             size: 16,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
-              color: isValid ? Colors.green : Colors.grey,
+              // color: isValid ? Colors.green : Colors.grey,
               fontSize: 12,
             ),
           ),
