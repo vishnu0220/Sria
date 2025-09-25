@@ -18,16 +18,15 @@ class UserService {
     final uri = Uri.parse('$baseUrl/api/admin/users');
 
     try {
-      final res = await http
-          .post(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 15));
+      final res = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(payload),
+      );
+      // .timeout(const Duration(seconds: 15));
 
       print("STATUS: ${res.statusCode}");
       print("BODY: ${res.body}");

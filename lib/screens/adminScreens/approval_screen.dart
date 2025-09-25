@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flow_sphere/Services/login_api_services.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/request_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/review_request_dialog.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 class ApprovalScreen extends StatefulWidget {
   const ApprovalScreen({super.key});
@@ -21,7 +24,8 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
   List<Request> _requests = [];
   String _selectedFilter = 'All Requests';
   bool _isLoading = true;
-  String? _errorMessage;
+  bool _hasInternetError = false;
+  // String? _errorMessage;
   DateTime? _lastUpdated;
 
   @override
@@ -31,12 +35,16 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
   }
 
   Future<void> _fetchRequests() async {
+    setState(() {
+      _isLoading = true;
+      _hasInternetError = false;
+    });
     try {
       final token = await _authService.getToken();
 
       if (token == null) {
         setState(() {
-          _errorMessage = "No token found. Please log in again.";
+          // _errorMessage = "No token found. Please log in again.";
           _isLoading = false;
         });
         return;
@@ -104,14 +112,22 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
         });
       } else {
         setState(() {
-          _errorMessage =
-              "Failed to load requests. Status Code: ${response.statusCode}";
+          // _errorMessage =
+          // "Failed to load requests. Status Code: ${response.statusCode}";
           _isLoading = false;
+        });
+      }
+    } on SocketException {
+      // Catch network-specific errors
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasInternetError = true; // Set internet error state
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Error: $e";
+        // _errorMessage = "Error: $e";
         _isLoading = false;
       });
     }
@@ -140,15 +156,16 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
       drawer: AdminNavigationDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null
-            ? Center(
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                ),
-              )
+        child: _hasInternetError
+            ? _buildNoInternetView()
+            : _isLoading
+            ? ShimmerWidget()
+            // : Center(
+            //       child: Text(
+            //         _errorMessage!,
+            //         style: const TextStyle(color: Colors.red, fontSize: 16),
+            //       ),
+            //     )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -238,6 +255,41 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
                   ),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildNoInternetView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Lottie.asset(
+            'assets/lottie/choose-your-colors.json',
+            repeat: true,
+            width: 250,
+            height: 250,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "No Internet Connection",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: _fetchRequests,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Try Again"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }

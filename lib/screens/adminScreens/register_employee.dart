@@ -43,6 +43,7 @@ class _RegisterEmployeeScreenState extends State<RegisterEmployeeScreen> {
   }
 
   Future<void> registerEmployee() async {
+    print('In register employee function');
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => isLoading = true);
@@ -56,19 +57,30 @@ class _RegisterEmployeeScreenState extends State<RegisterEmployeeScreen> {
     };
 
     final result = await _userService.registerEmployee(employeeData);
-
+    if (result.toString().contains('Failed host lookup')) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Could not register employee ${employeeData['name']}\nPlease check your internet and try again",
+          ),
+        ),
+      );
+      return;
+    }
     setState(() => isLoading = false);
 
     if (!mounted) return;
 
     if (result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Employee registered successfully ✅')),
+        const SnackBar(content: Text('Employee registered successfully')),
       );
       clearForm();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Registration failed ❌')),
+        // SnackBar(content: Text(result['message'] ?? 'Registration failed')),
+        SnackBar(content: Text('Server is taking to much time')),
       );
     }
   }

@@ -55,7 +55,7 @@ class DepartmentProgressCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _getDepartmentColor(departmentName).withOpacity(0.1),
+                    color: _getDepartmentColor(departmentName).withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(

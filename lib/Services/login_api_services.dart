@@ -102,15 +102,14 @@ class AuthService {
 
     final uri = Uri.parse('$baseUrl$path');
     try {
-      final res = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
+      final res = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      // .timeout(const Duration(seconds: 15));
 
       final body = res.body.isNotEmpty ? jsonDecode(res.body) : null;
       if (res.statusCode == 200) {
