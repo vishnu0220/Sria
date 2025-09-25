@@ -134,7 +134,10 @@ class _CustomNavigationDrawerState extends State<CustomNavigationDrawer> {
                 ),
                 icon: const Icon(Icons.logout),
                 label: const Text('Sign Out'),
-                onPressed: () {
+                onPressed: () async {
+                  final authService = AuthService();
+                  await authService.logout();
+                  if (!context.mounted) return;
                   Navigator.pushReplacementNamed(context, '/login');
                 },
               ),

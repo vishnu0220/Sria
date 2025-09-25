@@ -298,7 +298,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 children: [
                   // Progress Tracker Header
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Column(
                         children: [
@@ -327,7 +327,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         ],
                       ),
 
-                      const SizedBox(width: 20),
+                      // const SizedBox(width: 10),
                       IconButton(
                         onPressed: _isLoading
                             ? null
@@ -338,6 +338,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           color: bootstrapPrimaryBlue,
                         ),
                       ),
+                      // const SizedBox(width: 10),
                       TextButton.icon(
                         style: TextButton.styleFrom(
                           backgroundColor: bootstrapPrimaryBlue,
@@ -356,9 +357,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           size: 18,
                           color: Colors.white,
                         ),
-                        label: Text(
-                          _isSaving ? "Saving.." : " Save   ",
-                          style: TextStyle(color: Colors.white),
+                        label: SizedBox(
+                          width: 60,
+                          child: Text(
+                            _isSaving ? "Saving.." : "   Save",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ],

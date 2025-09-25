@@ -69,11 +69,9 @@ class _RequestsScreenState extends State<RequestsScreen>
       List<MissedCheckout> missed = [];
       try {
         missed = await RequestService.fetchMissedCheckouts();
-        print(
-          "Successfully fetched ${missed.length} missed checkouts",
-        ); // Debug log
+        // print("Successfully fetched ${missed.length} missed checkouts");
       } catch (e) {
-        print("Error fetching missed checkouts: $e");
+        debugPrint("Error fetching missed checkouts: $e");
         // Don't throw here, just continue with empty list
       }
 
@@ -82,7 +80,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         missedCheckouts = missed;
       });
     } catch (e) {
-      print("General error in _loadData: $e"); // Debug log
+      // print("General error in _loadData: $e"); // Debug log
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -694,10 +692,12 @@ class _RequestsScreenState extends State<RequestsScreen>
           // Request details
           _buildDetailRow(
             "Date:",
-            _formatDate(request.startDate) +
-                (request.startDate.day != request.endDate.day
-                    ? " - ${_formatDate(request.endDate)}"
-                    : ""),
+            request.type == 'CHECKOUT'
+                ? _formatDate(request.startDate)
+                : _formatDate(request.startDate) +
+                      (request.startDate.day != request.endDate.day
+                          ? " - ${_formatDate(request.endDate)}"
+                          : ""),
           ),
 
           if (request.type == "EARLY_LOGOFF" &&
@@ -910,7 +910,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         }
       }
     } catch (e) {
-      print("Exception in _submitClockoutRequest: $e"); // Debug log
+      // print("Exception in _submitClockoutRequest: $e"); // Debug log
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -953,7 +953,7 @@ class _RequestsScreenState extends State<RequestsScreen>
         return 'Leave Request';
       case 'EARLY_LOGOFF':
         return 'Early Logoff Request';
-      case 'CLOCKOUT':
+      case 'CHECKOUT':
         return 'Clockout Request';
       default:
         return type;
