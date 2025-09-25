@@ -979,8 +979,15 @@ class _RequestsScreenState extends State<RequestsScreen>
     return "${date.day}/${date.month}/${date.year}";
   }
 
+  // String _formatTime(DateTime time) {
+  //   return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+  // }
   String _formatTime(DateTime time) {
-    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+    // Convert to IST by adding 5 hours 30 minutes
+    final istTime = time.toUtc().add(const Duration(hours: 5, minutes: 30));
+
+    // Format as HH:mm
+    return "${istTime.hour.toString().padLeft(2, '0')}:${istTime.minute.toString().padLeft(2, '0')}";
   }
 
   // ignore: unused_element
