@@ -4,9 +4,11 @@ import 'package:flow_sphere/screens/adminScreens/widgets/department_progress_car
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_progress_card.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/export_progress_dialog.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/summary_card.dart';
+import 'package:flow_sphere/screens/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import 'package:lottie/lottie.dart';
 import '../userScreens/custom_appbar.dart';
 
 class AdminProgressScreen extends StatefulWidget {
@@ -23,7 +25,8 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
   String? _selectedDepartment;
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = true;
-  String? _error;
+  bool _hasInternetError = false;
+  // String? _error;
 
   // Summary data from API
   int _totalEmployees = 0;
@@ -46,7 +49,8 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
+      _hasInternetError = false;
+      // _error = null;
     });
 
     try {
@@ -57,7 +61,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
       await _loadEmployeeProgress();
     } catch (e) {
       setState(() {
-        _error = 'Failed to load data: $e';
+        // _error = 'Failed to load data: $e';
         _isLoading = false;
       });
     }
@@ -65,6 +69,11 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
 
   // Load summary statistics
   Future<void> _loadSummaryStats() async {
+    setState(() {
+      _isLoading = true;
+      _hasInternetError = false;
+      _filteredEmployees = [];
+    });
     try {
       final result = await _authService.getProtected('/api/admin/stats');
 
@@ -85,6 +94,14 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
         throw Exception(result['message'] ?? 'Failed to load summary stats');
       }
     } catch (e) {
+      if (e.toString().contains('Failed host lookup')) {
+        setState(() {
+          _isLoading = false;
+          _hasInternetError = true;
+          _filteredEmployees = [];
+        });
+        return;
+      }
       print('Error loading summary stats: $e');
       rethrow;
     }
@@ -126,6 +143,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
         }
       }
     } catch (e) {
+      _filteredEmployees = [];
       print('Error loading employee progress: $e');
       rethrow;
     }
@@ -199,28 +217,29 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(),
       drawer: AdminNavigationDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(_error!, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
+      body: _hasInternetError
+          ? _buildNoInternetView()
+          : _isLoading
+          ? ShimmerWidget()
+          // : Center(
+          //     child: Column(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         Icon(
+          //           Icons.error_outline,
+          //           size: 64,
+          //           color: Colors.red.shade300,
+          //         ),
+          //         const SizedBox(height: 16),
+          //         Text(_error!, textAlign: TextAlign.center),
+          //         const SizedBox(height: 16),
+          //         ElevatedButton(
+          //           onPressed: _loadData,
+          //           child: const Text('Retry'),
+          //         ),
+          //       ],
+          //     ),
+          //   )
           : RefreshIndicator(
               onRefresh: _loadData,
               child: SingleChildScrollView(
@@ -359,7 +378,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
                             children: [
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _selectedDepartment,
+                                  initialValue: _selectedDepartment,
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -386,6 +405,7 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
                                             child: Text(department),
                                           );
                                         })
+                                        // ignore: unnecessary_to_list_in_spreads
                                         .toList(),
                                   ],
                                   onChanged: (value) {
@@ -520,11 +540,47 @@ class _AdminProgressScreenState extends State<AdminProgressScreen> {
                           avgProgress: avgProgress,
                           totalTasks: totalTasks,
                         );
+                        // ignore: unnecessary_to_list_in_spreads
                       }).toList(),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildNoInternetView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Lottie.asset(
+            'assets/lottie/choose-your-colors.json',
+            repeat: true,
+            width: 250,
+            height: 250,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "No Internet Connection",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Try Again"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

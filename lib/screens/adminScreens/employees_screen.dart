@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flow_sphere/Services/Admin_services/attendance_service.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/admin_navigation_drawer.dart';
 import 'package:flow_sphere/screens/adminScreens/widgets/employee_card.dart';
 import 'package:flow_sphere/screens/userScreens/custom_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EmployeesScreen extends StatefulWidget {
   const EmployeesScreen({super.key});
@@ -18,6 +22,8 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
   String searchQuery = "";
 
   bool isLoading = false;
+  bool hasInternetError = false;
+
   List<Map<String, dynamic>> employees = [];
 
   final List<String> departments = [
@@ -38,6 +44,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
   Future<void> fetchEmployees() async {
     setState(() {
       isLoading = true;
+      hasInternetError = false;
     });
     try {
       final dateStr =
@@ -47,6 +54,14 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       setState(() {
         employees = data;
       });
+    } on SocketException {
+      // Catch network-specific errors
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          hasInternetError = true; // Set internet error state
+        });
+      }
     } catch (e) {
       print("Error fetching employees: $e");
     } finally {
@@ -256,23 +271,119 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
             const SizedBox(height: 12),
 
             // Employee list
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : filteredEmployees.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No employees found",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: filteredEmployees.length,
-                      itemBuilder: (context, index) {
-                        final emp = filteredEmployees[index];
-                        return EmployeeCard(emp: emp);
-                      },
-                    ),
+            hasInternetError
+                ? _buildNoInternetView()
+                : isLoading
+                ? employeeLoadingCard()
+                : Expanded(
+                    child: isLoading
+                        // ? const Center(child: CircularProgressIndicator())
+                        ? const Center(child: CircularProgressIndicator())
+                        : filteredEmployees.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "No employees found",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: filteredEmployees.length,
+                            itemBuilder: (context, index) {
+                              final emp = filteredEmployees[index];
+                              return EmployeeCard(emp: emp);
+                            },
+                          ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoInternetView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Lottie.asset(
+            'assets/lottie/choose-your-colors.json',
+            repeat: true,
+            width: 250,
+            height: 250,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "No Internet Connection",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: fetchEmployees,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Try Again"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget employeeLoadingCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Progress Card Skeleton
+            Container(
+              width: double.infinity,
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Action Cards Skeleton
+            Container(
+              width: double.infinity,
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Action Cards Skeleton
+            Container(
+              width: double.infinity,
+              height: 45,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ],
         ),

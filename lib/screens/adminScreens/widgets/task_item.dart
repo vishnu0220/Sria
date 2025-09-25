@@ -108,10 +108,10 @@ class TaskItem extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(task.status).withOpacity(0.1),
+                        color: _getStatusColor(task.status).withAlpha(25),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _getStatusColor(task.status).withOpacity(0.3),
+                          color: _getStatusColor(task.status).withAlpha(75),
                         ),
                       ),
                       child: Text(
@@ -243,10 +243,10 @@ class TaskItemFull extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(task.status).withOpacity(0.1),
+                        color: _getStatusColor(task.status).withAlpha(25),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _getStatusColor(task.status).withOpacity(0.3),
+                          color: _getStatusColor(task.status).withAlpha(75),
                         ),
                       ),
                       child: Text(
